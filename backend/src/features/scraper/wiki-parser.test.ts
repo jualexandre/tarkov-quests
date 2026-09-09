@@ -36,4 +36,10 @@ describe("parseQuestsPage", () => {
     expect(shootingCans.objectives[0]).toContain("Utyos");
     expect(shootingCans.rewards.length).toBeGreaterThan(0);
   });
+
+  it("pairs every trader tab with its own quest-tracking table, not an unrelated wikitable", () => {
+    const traders = parseQuestsPage(loadFixtureJson());
+    expect(traders.length).toBe(11);
+    expect(traders.every((t) => t.quests.length > 0)).toBe(true);
+  });
 });

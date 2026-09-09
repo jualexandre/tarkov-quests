@@ -59,6 +59,10 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
         }
       }
 
+      if (seenSlugs.length === 0) {
+        throw new Error("Scrape parsed 0 quests; refusing to deactivate the entire database");
+      }
+
       const deactivated = await deps.questRepository.deactivateNotIn(seenSlugs);
 
       return { added, updated, deactivated, totalQuests: seenSlugs.length };

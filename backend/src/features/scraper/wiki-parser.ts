@@ -11,7 +11,7 @@ export function parseQuestsPage(apiResponseJson: string): ParsedTrader[] {
     .get()
     .filter((name) => name.length > 0);
 
-  const tables = $("table.wikitable").toArray();
+  const tables = $("table.table-progress-tracking").toArray();
 
   return traderNames.map((name, tabOrder) => {
     const table = tables[tabOrder];

@@ -9,7 +9,7 @@ function buildFakeApiResponse() {
       text: {
         "*": `
           <ul class="wds-tabs"><li class="wds-tabs__tab"><span title="Prapor"></span></li></ul>
-          <table class="wikitable"><tbody>
+          <table class="table-progress-tracking wikitable sortable"><tbody>
             <tr><th>icon</th><th>Quest</th><th>Objectives</th><th>Rewards</th></tr>
             <tr>
               <td>checkbox</td>
@@ -70,5 +70,39 @@ describe("createScraperService", () => {
     });
     expect(questRepository.deactivateNotIn).toHaveBeenCalledWith(["Debut"]);
     expect(summary).toEqual({ added: 1, updated: 0, deactivated: 2, totalQuests: 1 });
+  });
+
+  it("refuses to deactivate every quest when the parsed page yields zero quests", async () => {
+    const emptyPageResponse = JSON.stringify({
+      parse: {
+        text: {
+          "*": `
+            <ul class="wds-tabs"><li class="wds-tabs__tab"><span title="Prapor"></span></li></ul>
+            <table class="table-progress-tracking wikitable sortable"><tbody>
+              <tr><th>icon</th><th>Quest</th><th>Objectives</th><th>Rewards</th></tr>
+            </tbody></table>
+          `,
+        },
+      },
+    });
+
+    const traderRepository: TraderRepository = {
+      upsertByName: vi.fn().mockResolvedValue({ id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 }),
+      findAll: vi.fn(),
+    };
+    const questRepository: QuestRepository = {
+      upsertBySlug: vi.fn(),
+      updateCompleted: vi.fn(),
+      findAllActiveGroupedByTrader: vi.fn().mockResolvedValue([]),
+      deactivateNotIn: vi.fn().mockResolvedValue(0),
+    };
+    const fetchQuestsPageJson = vi.fn().mockResolvedValue(emptyPageResponse);
+
+    const service = createScraperService({ traderRepository, questRepository, fetchQuestsPageJson });
+
+    await expect(service.runScrape()).rejects.toThrow(
+      "Scrape parsed 0 quests; refusing to deactivate the entire database"
+    );
+    expect(questRepository.deactivateNotIn).not.toHaveBeenCalled();
   });
 });
