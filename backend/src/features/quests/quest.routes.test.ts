@@ -40,4 +40,24 @@ describe("PATCH /api/quests/:id", () => {
 
     expect(response.status).toBe(400);
   });
+
+  it("returns 400 when the id param is not numeric", async () => {
+    const questRepository = {} as unknown as QuestRepository;
+    const scraperService = {} as ScraperService;
+    const app = createApp({ questRepository, scraperService });
+
+    const response = await request(app).patch("/api/quests/abc").send({ completed: true });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 400 when the request has no body", async () => {
+    const questRepository = {} as unknown as QuestRepository;
+    const scraperService = {} as ScraperService;
+    const app = createApp({ questRepository, scraperService });
+
+    const response = await request(app).patch("/api/quests/1").send();
+
+    expect(response.status).toBe(400);
+  });
 });
