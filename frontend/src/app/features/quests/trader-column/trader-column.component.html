@@ -1,0 +1,8 @@
+<div class="rounded-lg bg-[var(--color-bg)] p-2 min-w-[280px]">
+  <h2 class="text-lg font-semibold mb-3 text-[var(--color-accent)]">{{ trader.name }}</h2>
+  @for (quest of trader.quests; track quest.id) {
+    <app-quest-item [quest]="quest" (toggle)="onQuestToggle(quest.id, $event)"></app-quest-item>
+  } @empty {
+    <p class="text-sm text-[var(--color-text-muted)]">No active quests.</p>
+  }
+</div>

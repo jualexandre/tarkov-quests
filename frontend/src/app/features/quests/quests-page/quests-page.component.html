@@ -1,0 +1,26 @@
+<div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-4">
+  <header class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">Tarkov Quests</h1>
+    <button
+      type="button"
+      class="px-4 py-2 rounded-md bg-[var(--color-accent)] text-black font-medium hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+      [disabled]="loading$ | async"
+      (click)="onRunScrape()"
+    >
+      {{ (loading$ | async) ? "Scraping..." : "Run scrape" }}
+    </button>
+  </header>
+
+  @if (lastScrapeSummary$ | async; as summary) {
+    <p class="text-sm text-[var(--color-text-muted)] mb-4">
+      Last scrape: {{ summary.added }} added, {{ summary.updated }} updated, {{ summary.deactivated }} deactivated
+      ({{ summary.totalQuests }} total).
+    </p>
+  }
+
+  <div class="flex flex-wrap gap-4">
+    @for (trader of traders$ | async; track trader.id) {
+      <app-trader-column [trader]="trader" (questToggled)="onQuestToggled($event)"></app-trader-column>
+    }
+  </div>
+</div>

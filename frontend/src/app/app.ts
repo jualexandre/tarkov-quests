@@ -1,11 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component } from "@angular/core";
+import { QuestsPageComponent } from "./features/quests/quests-page/quests-page.component";
 
 @Component({
-  imports: [],
-  selector: 'app-root',
-  styleUrl: './app.css',
-  templateUrl: './app.html',
+  selector: "app-root",
+  standalone: true,
+  imports: [QuestsPageComponent],
+  templateUrl: "./app.html",
 })
-export class App {
-  protected readonly title = signal('frontend');
-}
+export class App {}
