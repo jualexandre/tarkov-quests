@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
-import { firstValueFrom, of } from "rxjs";
+import { firstValueFrom, of, throwError } from "rxjs";
 import { vi, type Mock } from "vitest";
 import { QuestsState } from "./quests.state";
 import { LoadTraders, ToggleQuestCompleted, RunScrape } from "./quests.actions";
@@ -66,5 +66,23 @@ describe("QuestsState", () => {
 
     expect(store.selectSnapshot(QuestsState.lastScrapeSummary)).toEqual(summary);
     expect(questsApi.getTraders).toHaveBeenCalled();
+  });
+
+  it("LoadTraders clears loading and sets an error when the API call fails", async () => {
+    questsApi.getTraders.mockReturnValue(throwError(() => new Error("network down")));
+
+    await firstValueFrom(store.dispatch(new LoadTraders()));
+
+    expect(store.selectSnapshot(QuestsState.loading)).toBe(false);
+    expect(store.selectSnapshot(QuestsState.error)).toBe("network down");
+  });
+
+  it("RunScrape clears loading and sets an error when the API call fails", async () => {
+    questsApi.runScrape.mockReturnValue(throwError(() => new Error("network down")));
+
+    await firstValueFrom(store.dispatch(new RunScrape()));
+
+    expect(store.selectSnapshot(QuestsState.loading)).toBe(false);
+    expect(store.selectSnapshot(QuestsState.error)).toBe("network down");
   });
 });

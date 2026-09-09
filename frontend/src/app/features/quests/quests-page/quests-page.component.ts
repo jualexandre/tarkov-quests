@@ -19,6 +19,7 @@ export class QuestsPageComponent implements OnInit {
   traders$: Observable<TraderDto[]> = this.store.select(QuestsState.traders);
   loading$: Observable<boolean> = this.store.select(QuestsState.loading);
   lastScrapeSummary$: Observable<ScrapeSummaryDto | null> = this.store.select(QuestsState.lastScrapeSummary);
+  error$: Observable<string | null> = this.store.select(QuestsState.error);
 
   ngOnInit(): void {
     this.store.dispatch(new LoadTraders());

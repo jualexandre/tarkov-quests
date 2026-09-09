@@ -11,6 +11,10 @@
     </button>
   </header>
 
+  @if (error$ | async; as error) {
+    <p class="text-red-400 text-sm mb-4">{{ error }}</p>
+  }
+
   @if (lastScrapeSummary$ | async; as summary) {
     <p class="text-sm text-[var(--color-text-muted)] mb-4">
       Last scrape: {{ summary.added }} added, {{ summary.updated }} updated, {{ summary.deactivated }} deactivated

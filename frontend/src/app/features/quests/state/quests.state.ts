@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { tap, switchMap } from "rxjs/operators";
+import { EMPTY } from "rxjs";
+import { tap, switchMap, catchError } from "rxjs/operators";
 import { QuestsApi } from "../../../core/api/quests.api";
 import type { TraderDto, ScrapeSummaryDto } from "../../../core/api/quests.api";
 import { LoadTraders, ToggleQuestCompleted, RunScrape } from "./quests.actions";
@@ -9,11 +10,12 @@ export interface QuestsStateModel {
   traders: TraderDto[];
   loading: boolean;
   lastScrapeSummary: ScrapeSummaryDto | null;
+  error: string | null;
 }
 
 @State<QuestsStateModel>({
   name: "quests",
-  defaults: { traders: [], loading: false, lastScrapeSummary: null },
+  defaults: { traders: [], loading: false, lastScrapeSummary: null, error: null },
 })
 @Injectable()
 export class QuestsState {
@@ -34,11 +36,20 @@ export class QuestsState {
     return state.lastScrapeSummary;
   }
 
+  @Selector()
+  static error(state: QuestsStateModel): string | null {
+    return state.error;
+  }
+
   @Action(LoadTraders)
   loadTraders(ctx: StateContext<QuestsStateModel>) {
-    ctx.patchState({ loading: true });
+    ctx.patchState({ loading: true, error: null });
     return this.questsApi.getTraders().pipe(
-      tap((traders) => ctx.patchState({ traders, loading: false }))
+      tap((traders) => ctx.patchState({ traders, loading: false })),
+      catchError((err) => {
+        ctx.patchState({ loading: false, error: err.message ?? "Failed to load traders" });
+        return EMPTY;
+      })
     );
   }
 
@@ -57,11 +68,15 @@ export class QuestsState {
 
   @Action(RunScrape)
   runScrape(ctx: StateContext<QuestsStateModel>) {
-    ctx.patchState({ loading: true });
+    ctx.patchState({ loading: true, error: null });
     return this.questsApi.runScrape().pipe(
       tap((summary) => ctx.patchState({ lastScrapeSummary: summary })),
       switchMap(() => this.questsApi.getTraders()),
-      tap((traders) => ctx.patchState({ traders, loading: false }))
+      tap((traders) => ctx.patchState({ traders, loading: false })),
+      catchError((err) => {
+        ctx.patchState({ loading: false, error: err.message ?? "Failed to run scrape" });
+        return EMPTY;
+      })
     );
   }
 }
