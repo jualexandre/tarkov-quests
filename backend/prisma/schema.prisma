@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Trader {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  slug     String  @unique
+  tabOrder Int
+  quests   Quest[]
+}
+
+model Quest {
+  id         Int      @id @default(autoincrement())
+  traderId   Int
+  trader     Trader   @relation(fields: [traderId], references: [id])
+  name       String
+  wikiSlug   String   @unique
+  wikiUrl    String
+  objectives String
+  rewards    String
+  completed  Boolean  @default(false)
+  active     Boolean  @default(true)
+  lastSeenAt DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
