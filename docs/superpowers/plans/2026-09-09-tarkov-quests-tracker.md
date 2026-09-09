@@ -1710,6 +1710,7 @@ Create `frontend/src/app/features/quests/state/quests.state.spec.ts`:
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
+import { vi, type Mock } from "vitest";
 import { QuestsState } from "./quests.state";
 import { LoadTraders, ToggleQuestCompleted, RunScrape } from "./quests.actions";
 import { QuestsApi } from "../../../core/api/quests.api";
@@ -1717,7 +1718,7 @@ import type { TraderDto, QuestDto, ScrapeSummaryDto } from "../../../core/api/qu
 
 describe("QuestsState", () => {
   let store: Store;
-  let questsApi: jasmine.SpyObj<QuestsApi>;
+  let questsApi: { getTraders: Mock; updateQuestCompleted: Mock; runScrape: Mock };
 
   const trader: TraderDto = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0, quests: [] };
   const quest: QuestDto = {
@@ -1734,7 +1735,7 @@ describe("QuestsState", () => {
   };
 
   beforeEach(() => {
-    questsApi = jasmine.createSpyObj("QuestsApi", ["getTraders", "updateQuestCompleted", "runScrape"]);
+    questsApi = { getTraders: vi.fn(), updateQuestCompleted: vi.fn(), runScrape: vi.fn() };
     TestBed.configureTestingModule({
       imports: [NgxsModule.forRoot([QuestsState])],
       providers: [{ provide: QuestsApi, useValue: questsApi }],
@@ -1743,10 +1744,10 @@ describe("QuestsState", () => {
   });
 
   it("LoadTraders populates traders and clears loading", (done) => {
-    questsApi.getTraders.and.returnValue(of([{ ...trader, quests: [quest] }]));
+    questsApi.getTraders.mockReturnValue(of([{ ...trader, quests: [quest] }]));
     store.dispatch(new LoadTraders()).subscribe(() => {
       const traders = store.selectSnapshot(QuestsState.traders);
-      expect(traders).toHaveSize(1);
+      expect(traders).toHaveLength(1);
       expect(traders[0].quests[0].name).toBe("Debut");
       expect(store.selectSnapshot(QuestsState.loading)).toBe(false);
       done();
@@ -1754,8 +1755,8 @@ describe("QuestsState", () => {
   });
 
   it("ToggleQuestCompleted updates the quest's completed flag in state", (done) => {
-    questsApi.getTraders.and.returnValue(of([{ ...trader, quests: [quest] }]));
-    questsApi.updateQuestCompleted.and.returnValue(of({ ...quest, completed: true }));
+    questsApi.getTraders.mockReturnValue(of([{ ...trader, quests: [quest] }]));
+    questsApi.updateQuestCompleted.mockReturnValue(of({ ...quest, completed: true }));
 
     store.dispatch(new LoadTraders()).subscribe(() => {
       store.dispatch(new ToggleQuestCompleted(1, true)).subscribe(() => {
@@ -1769,8 +1770,8 @@ describe("QuestsState", () => {
 
   it("RunScrape stores the scrape summary and reloads traders", (done) => {
     const summary: ScrapeSummaryDto = { added: 1, updated: 0, deactivated: 0, totalQuests: 1 };
-    questsApi.runScrape.and.returnValue(of(summary));
-    questsApi.getTraders.and.returnValue(of([trader]));
+    questsApi.runScrape.mockReturnValue(of(summary));
+    questsApi.getTraders.mockReturnValue(of([trader]));
 
     store.dispatch(new RunScrape()).subscribe(() => {
       expect(store.selectSnapshot(QuestsState.lastScrapeSummary)).toEqual(summary);
@@ -2176,6 +2177,7 @@ Create `frontend/src/app/features/quests/quests-page/quests-page.component.spec.
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
+import { vi, type Mock } from "vitest";
 import { QuestsPageComponent } from "./quests-page.component";
 import { QuestsState } from "../state/quests.state";
 import { QuestsApi } from "../../../core/api/quests.api";
@@ -2183,13 +2185,13 @@ import type { TraderDto } from "../../../core/api/quests.api";
 
 describe("QuestsPageComponent", () => {
   let fixture: ComponentFixture<QuestsPageComponent>;
-  let questsApi: jasmine.SpyObj<QuestsApi>;
+  let questsApi: { getTraders: Mock; updateQuestCompleted: Mock; runScrape: Mock };
 
   const trader: TraderDto = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0, quests: [] };
 
   beforeEach(() => {
-    questsApi = jasmine.createSpyObj("QuestsApi", ["getTraders", "updateQuestCompleted", "runScrape"]);
-    questsApi.getTraders.and.returnValue(of([trader]));
+    questsApi = { getTraders: vi.fn(), updateQuestCompleted: vi.fn(), runScrape: vi.fn() };
+    questsApi.getTraders.mockReturnValue(of([trader]));
 
     TestBed.configureTestingModule({
       imports: [QuestsPageComponent, NgxsModule.forRoot([QuestsState])],
@@ -2207,7 +2209,7 @@ describe("QuestsPageComponent", () => {
   });
 
   it("dispatches RunScrape when the scrape button is clicked", () => {
-    questsApi.runScrape.and.returnValue(of({ added: 0, updated: 0, deactivated: 0, totalQuests: 0 }));
+    questsApi.runScrape.mockReturnValue(of({ added: 0, updated: 0, deactivated: 0, totalQuests: 0 }));
     const button = fixture.nativeElement.querySelector("button") as HTMLButtonElement;
     button.click();
     expect(questsApi.runScrape).toHaveBeenCalled();
