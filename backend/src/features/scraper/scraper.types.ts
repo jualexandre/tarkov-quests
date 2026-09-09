@@ -18,3 +18,7 @@ export interface ScrapeSummary {
   deactivated: number;
   totalQuests: number;
 }
+
+export interface ScraperService {
+  runScrape(): Promise<ScrapeSummary>;
+}
