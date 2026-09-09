@@ -42,4 +42,20 @@ describe("QuestItemComponent", () => {
 
     expect(emitted).toEqual([true]);
   });
+
+  it("renders duplicate objective strings without throwing", () => {
+    const duplicateQuest: QuestDto = {
+      ...quest,
+      objectives: ["Hand over the item", "Hand over the item"],
+    };
+    fixture.componentInstance.quest = duplicateQuest;
+    const button = fixture.nativeElement.querySelector("button") as HTMLButtonElement;
+    button.dispatchEvent(new Event("click"));
+
+    expect(() => fixture.detectChanges()).not.toThrow();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const objectiveItems = el.querySelectorAll("ul.list-disc")[0].querySelectorAll("li");
+    expect(objectiveItems.length).toBe(2);
+  });
 });

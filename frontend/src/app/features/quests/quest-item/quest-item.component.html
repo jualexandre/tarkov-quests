@@ -32,7 +32,7 @@
           <div>
             <p class="font-semibold text-[var(--color-text)] mb-1">Objectives</p>
             <ul class="list-disc list-inside space-y-0.5">
-              @for (objective of quest.objectives; track objective) {
+              @for (objective of quest.objectives; track $index) {
                 <li>{{ objective }}</li>
               }
             </ul>
@@ -40,7 +40,7 @@
           <div>
             <p class="font-semibold text-[var(--color-text)] mb-1">Rewards</p>
             <ul class="list-disc list-inside space-y-0.5">
-              @for (reward of quest.rewards; track reward) {
+              @for (reward of quest.rewards; track $index) {
                 <li>{{ reward }}</li>
               }
             </ul>
