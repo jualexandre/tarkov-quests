@@ -11,7 +11,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "pretest": "cross-env DATABASE_URL=file:./test.db prisma db push --force-reset",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",

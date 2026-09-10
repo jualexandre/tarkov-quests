@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { createApp } from "../../shared/http/app";
 import type { QuestRepository, TraderWithQuests } from "../quests/quest.types";
+import { EMPTY_QUEST_REQUIREMENTS } from "../quests/quest.types";
 import type { ScraperService } from "../scraper/scraper.types";
 
 describe("GET /api/traders", () => {
@@ -23,6 +24,7 @@ describe("GET /api/traders", () => {
             objectives: ["Eliminate 5 Scavs"],
             rewards: ["+1200 EXP"],
             requiredItems: [],
+            requirements: EMPTY_QUEST_REQUIREMENTS,
             completed: false,
             active: true,
             lastSeenAt: new Date("2026-01-01T00:00:00.000Z"),
