@@ -4,6 +4,7 @@ import { QuestCellComponent } from "../../../shared/quest-cell/quest-cell.compon
 import { QuestListComponent } from "../../../shared/quest-list/quest-list.component";
 import { RequiredItemListComponent } from "../../../shared/required-item-list/required-item-list.component";
 import { sortByCompleted } from "../../../core/quest-sort";
+import type { QuestCompletionInfo } from "../../../core/quest-lock";
 import type { QuestDto, TraderDto, QuestToggledEvent } from "../../../core/api/quests.api";
 
 @Component({
@@ -14,6 +15,8 @@ import type { QuestDto, TraderDto, QuestToggledEvent } from "../../../core/api/q
 })
 export class QuestTableComponent {
   @Input({ required: true }) trader!: TraderDto;
+  @Input() playerLevel: number | null = null;
+  @Input() completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map();
   @Output() questToggled = new EventEmitter<QuestToggledEvent>();
 
   sortedQuests(): QuestDto[] {

@@ -5,6 +5,7 @@ import { QuestListComponent } from "../../../shared/quest-list/quest-list.compon
 import { RequiredItemListComponent } from "../../../shared/required-item-list/required-item-list.component";
 import { TraderAvatarComponent } from "../../../shared/trader-avatar/trader-avatar.component";
 import { sortByCompleted } from "../../../core/quest-sort";
+import type { QuestCompletionInfo } from "../../../core/quest-lock";
 import type { QuestDto, QuestToggledEvent } from "../../../core/api/quests.api";
 
 export type SearchResultDto = QuestDto & { traderName: string; traderImageUrl: string | null };
@@ -17,6 +18,8 @@ export type SearchResultDto = QuestDto & { traderName: string; traderImageUrl: s
 })
 export class SearchResultsComponent {
   @Input({ required: true }) results!: SearchResultDto[];
+  @Input() playerLevel: number | null = null;
+  @Input() completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map();
   @Output() questToggled = new EventEmitter<QuestToggledEvent>();
 
   sortedResults(): SearchResultDto[] {

@@ -93,6 +93,24 @@ describe("QuestTableComponent", () => {
     expect(emitted).toEqual([{ id: 1, completed: true }]);
   });
 
+  it("passes playerLevel and completionBySlug down so a locked quest renders its lock icon", () => {
+    const lockedTrader: TraderDto = {
+      ...trader,
+      quests: [
+        {
+          ...trader.quests[0],
+          requirements: { minLevel: 30, prerequisiteQuestSlugs: [], loyaltyNotes: [] },
+        },
+      ],
+    };
+    fixture.componentRef.setInput("trader", lockedTrader);
+    fixture.componentRef.setInput("playerLevel", 10);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("🔒");
+  });
+
   describe("ordering completed quests to the end", () => {
     function buildTrader(completedIds: number[]): TraderDto {
       return {

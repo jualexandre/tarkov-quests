@@ -84,6 +84,19 @@ describe("SearchResultsComponent", () => {
     expect(rows[0].textContent).toContain("Secure Folder 0060");
   });
 
+  it("passes playerLevel and completionBySlug down so a locked quest renders its lock icon", () => {
+    const lockedResults = [
+      { ...results[0], requirements: { minLevel: 30, prerequisiteQuestSlugs: [], loyaltyNotes: [] } },
+      results[1],
+    ];
+    fixture.componentRef.setInput("results", lockedResults);
+    fixture.componentRef.setInput("playerLevel", 10);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("🔒");
+  });
+
   it("renders the trader's portrait image in the Trader cell when imageUrl is set", () => {
     const el: HTMLElement = fixture.nativeElement;
     const row = el.querySelectorAll("tbody tr")[0];
