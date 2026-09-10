@@ -42,4 +42,20 @@ describe("parseQuestsPage", () => {
     expect(traders.length).toBe(11);
     expect(traders.every((t) => t.quests.length > 0)).toBe(true);
   });
+
+  it("parses the trader portrait URL from the tab's img src when it is not lazy-loaded", () => {
+    const traders = parseQuestsPage(loadFixtureJson());
+    const prapor = traders.find((t) => t.name === "Prapor")!;
+    expect(prapor.imageUrl).toBe(
+      "https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/6/6b/Prapor_Portrait.png/revision/latest/scale-to-width-down/105?cb=20180425012550"
+    );
+  });
+
+  it("prefers the img's data-src over the lazy-load placeholder src", () => {
+    const traders = parseQuestsPage(loadFixtureJson());
+    const therapist = traders.find((t) => t.name === "Therapist")!;
+    expect(therapist.imageUrl).toBe(
+      "https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/c/c7/Therapist_Portrait.png/revision/latest/scale-to-width-down/105?cb=20221124232039"
+    );
+  });
 });

@@ -8,7 +8,7 @@ export class PrismaTraderRepository implements TraderRepository {
     return this.prisma.trader.upsert({
       where: { name: data.name },
       create: data,
-      update: { slug: data.slug, tabOrder: data.tabOrder },
+      update: { slug: data.slug, tabOrder: data.tabOrder, imageUrl: data.imageUrl },
     });
   }
 

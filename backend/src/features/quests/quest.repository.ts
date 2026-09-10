@@ -61,6 +61,7 @@ export class PrismaQuestRepository implements QuestRepository {
       name: trader.name,
       slug: trader.slug,
       tabOrder: trader.tabOrder,
+      imageUrl: trader.imageUrl,
       quests: trader.quests.map(toQuest),
     }));
   }

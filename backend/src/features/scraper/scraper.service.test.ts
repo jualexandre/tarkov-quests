@@ -8,7 +8,7 @@ function buildFakeApiResponse() {
     parse: {
       text: {
         "*": `
-          <ul class="wds-tabs"><li class="wds-tabs__tab"><span title="Prapor"></span></li></ul>
+          <ul class="wds-tabs"><li class="wds-tabs__tab"><span title="Prapor"><img src="https://example.com/prapor.png" /></span></li></ul>
           <table class="table-progress-tracking wikitable sortable"><tbody>
             <tr><th>icon</th><th>Quest</th><th>Objectives</th><th>Rewards</th></tr>
             <tr>
@@ -51,14 +51,22 @@ describe("createScraperService", () => {
       deactivateNotIn: vi.fn().mockResolvedValue(2),
     };
     const fetchQuestsPageJson = vi.fn().mockResolvedValue(buildFakeApiResponse());
+    const downloadTraderImage = vi.fn().mockResolvedValue("/trader-images/prapor.png");
 
-    const service = createScraperService({ traderRepository, questRepository, fetchQuestsPageJson });
+    const service = createScraperService({
+      traderRepository,
+      questRepository,
+      fetchQuestsPageJson,
+      downloadTraderImage,
+    });
     const summary = await service.runScrape();
 
+    expect(downloadTraderImage).toHaveBeenCalledWith("https://example.com/prapor.png", "prapor");
     expect(traderRepository.upsertByName).toHaveBeenCalledWith({
       name: "Prapor",
       slug: "prapor",
       tabOrder: 0,
+      imageUrl: "/trader-images/prapor.png",
     });
     expect(questRepository.upsertBySlug).toHaveBeenCalledWith({
       traderId: 1,
@@ -97,8 +105,14 @@ describe("createScraperService", () => {
       deactivateNotIn: vi.fn().mockResolvedValue(0),
     };
     const fetchQuestsPageJson = vi.fn().mockResolvedValue(emptyPageResponse);
+    const downloadTraderImage = vi.fn().mockResolvedValue(null);
 
-    const service = createScraperService({ traderRepository, questRepository, fetchQuestsPageJson });
+    const service = createScraperService({
+      traderRepository,
+      questRepository,
+      fetchQuestsPageJson,
+      downloadTraderImage,
+    });
 
     await expect(service.runScrape()).rejects.toThrow(
       "Scrape parsed 0 quests; refusing to deactivate the entire database"

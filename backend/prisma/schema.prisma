@@ -11,6 +11,7 @@ model Trader {
   name     String  @unique
   slug     String  @unique
   tabOrder Int
+  imageUrl String?
   quests   Quest[]
 }
 

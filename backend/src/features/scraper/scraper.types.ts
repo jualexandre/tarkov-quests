@@ -9,6 +9,7 @@ export interface ParsedQuest {
 export interface ParsedTrader {
   name: string;
   tabOrder: number;
+  imageUrl: string | null;
   quests: ParsedQuest[];
 }
 

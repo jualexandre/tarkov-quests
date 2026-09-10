@@ -12,6 +12,7 @@ describe("GET /api/traders", () => {
         name: "Prapor",
         slug: "prapor",
         tabOrder: 0,
+        imageUrl: "/api/trader-images/prapor.png",
         quests: [
           {
             id: 1,
@@ -33,12 +34,13 @@ describe("GET /api/traders", () => {
     } as unknown as QuestRepository;
     const scraperService = {} as ScraperService;
 
-    const app = createApp({ questRepository, scraperService });
+    const app = createApp({ questRepository, scraperService, traderImagesDir: "/tmp/test-trader-images" });
     const response = await request(app).get("/api/traders");
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(1);
     expect(response.body[0].name).toBe("Prapor");
+    expect(response.body[0].imageUrl).toBe("/api/trader-images/prapor.png");
     expect(response.body[0].quests[0].wikiSlug).toBe("Debut");
   });
 });

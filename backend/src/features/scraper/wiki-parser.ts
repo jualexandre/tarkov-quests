@@ -6,14 +6,21 @@ export function parseQuestsPage(apiResponseJson: string): ParsedTrader[] {
   const html: string = parsed.parse.text["*"];
   const $ = cheerio.load(html);
 
-  const traderNames = $("li.wds-tabs__tab span[title]")
-    .map((_, el) => $(el).attr("title") ?? "")
+  const traderTabs = $("li.wds-tabs__tab span[title]")
+    .map((_, el) => {
+      const span = $(el);
+      const img = span.find("img").first();
+      return {
+        name: span.attr("title") ?? "",
+        imageUrl: img.attr("data-src") ?? img.attr("src") ?? null,
+      };
+    })
     .get()
-    .filter((name) => name.length > 0);
+    .filter((trader) => trader.name.length > 0);
 
   const tables = $("table.table-progress-tracking").toArray();
 
-  return traderNames.map((name, tabOrder) => {
+  return traderTabs.map(({ name, imageUrl }, tabOrder) => {
     const table = tables[tabOrder];
     const quests: ParsedQuest[] = [];
 
@@ -50,6 +57,6 @@ export function parseQuestsPage(apiResponseJson: string): ParsedTrader[] {
         });
     }
 
-    return { name, tabOrder, quests };
+    return { name, tabOrder, imageUrl, quests };
   });
 }

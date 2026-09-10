@@ -10,7 +10,7 @@ describe("PrismaQuestRepository", () => {
   let traderId: number;
 
   beforeEach(async () => {
-    const trader = await traders.upsertByName({ name: "Prapor", slug: "prapor", tabOrder: 0 });
+    const trader = await traders.upsertByName({ name: "Prapor", slug: "prapor", tabOrder: 0, imageUrl: null });
     traderId = trader.id;
   });
 
@@ -54,8 +54,14 @@ describe("PrismaQuestRepository", () => {
     expect(second.objectives).toEqual(["a", "c"]);
   });
 
+  it("findAllActiveGroupedByTrader includes each trader's imageUrl", async () => {
+    await traders.upsertByName({ name: "Prapor", slug: "prapor", tabOrder: 0, imageUrl: "/trader-images/prapor.png" });
+    const grouped = await repo.findAllActiveGroupedByTrader();
+    expect(grouped.find((t) => t.name === "Prapor")?.imageUrl).toBe("/trader-images/prapor.png");
+  });
+
   it("findAllActiveGroupedByTrader returns only active quests, grouped and ordered by trader tabOrder", async () => {
-    const therapist = await traders.upsertByName({ name: "Therapist", slug: "therapist", tabOrder: 1 });
+    const therapist = await traders.upsertByName({ name: "Therapist", slug: "therapist", tabOrder: 1, imageUrl: null });
     await repo.upsertBySlug({
       traderId,
       name: "Debut",

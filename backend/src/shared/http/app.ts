@@ -9,12 +9,14 @@ import { errorHandler } from "./error-handler";
 export interface AppDeps {
   questRepository: QuestRepository;
   scraperService: ScraperService;
+  traderImagesDir: string;
 }
 
 export function createApp(deps: AppDeps): Express {
   const app = express();
   app.use(express.json());
 
+  app.use("/api/trader-images", express.static(deps.traderImagesDir));
   app.use("/api/traders", createTraderRouter(deps.questRepository));
   app.use("/api/quests", createQuestRouter(deps.questRepository));
   app.use("/api/scrape", createScraperRouter(deps.scraperService));

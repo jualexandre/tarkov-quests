@@ -24,6 +24,7 @@ export interface ScraperServiceDeps {
   traderRepository: TraderRepository;
   questRepository: QuestRepository;
   fetchQuestsPageJson: () => Promise<string>;
+  downloadTraderImage: (imageUrl: string | null, slug: string) => Promise<string | null>;
 }
 
 export function createScraperService(deps: ScraperServiceDeps): ScraperService {
@@ -37,10 +38,13 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
       const seenSlugs: string[] = [];
 
       for (const parsedTrader of parsedTraders) {
+        const slug = slugifyTraderName(parsedTrader.name);
+        const imageUrl = await deps.downloadTraderImage(parsedTrader.imageUrl, slug);
         const trader = await deps.traderRepository.upsertByName({
           name: parsedTrader.name,
-          slug: slugifyTraderName(parsedTrader.name),
+          slug,
           tabOrder: parsedTrader.tabOrder,
+          imageUrl,
         });
 
         for (const parsedQuest of parsedTrader.quests) {
