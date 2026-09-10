@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import type { ParsedQuest, ParsedTrader } from "./scraper.types";
-import type { RequiredItemEntry } from "../quests/quest.types";
+import type { RequiredItemEntry, QuestRequirements } from "../quests/quest.types";
 
 const WIKI_BASE_URL = "https://escapefromtarkov.fandom.com";
 
@@ -337,4 +337,51 @@ export function parseRequiredItems(apiResponseJson: string): RequiredItemEntry[]
   }
 
   return entries;
+}
+
+const RELATED_QUESTS_HEADER = "Related quests";
+
+/**
+ * Parses a quest's own level/prior-quest gating from its detail page. Both
+ * blocks are independent and optional: a quest can have neither, either, or
+ * both. Trader-loyalty-level lines are kept as informational text only (this
+ * app tracks no trader reputation), never parsed into `minLevel`.
+ */
+export function parseRequirements(apiResponseJson: string): QuestRequirements {
+  const parsed = JSON.parse(apiResponseJson);
+  const html: string = parsed.parse.text["*"];
+  const $ = cheerio.load(html);
+
+  let minLevel: number | null = null;
+  const loyaltyNotes: string[] = [];
+
+  const requirementsList = $("#Requirements").first().closest("h2").next("ul");
+  requirementsList.children("li").each((_, li) => {
+    const text = $(li).text().trim();
+    const levelMatch = text.match(/level\s+(\d+)/i);
+    if (levelMatch && !text.toLowerCase().includes("loyalty")) {
+      minLevel = parseInt(levelMatch[1], 10);
+      return;
+    }
+    loyaltyNotes.push(sanitizeHtmlFragment($, li));
+  });
+
+  const relatedQuestsHeader = $(".va-infobox-header")
+    .filter((_, el) => $(el).text().trim() === RELATED_QUESTS_HEADER)
+    .first();
+
+  let prerequisiteQuestSlugs: string[] = [];
+  if (relatedQuestsHeader.length > 0) {
+    const group = relatedQuestsHeader.closest("table.va-infobox-group");
+    const previousCell = group
+      .find(".va-infobox-content")
+      .filter((_, el) => $(el).text().trim().startsWith("Previous:"))
+      .first();
+    prerequisiteQuestSlugs = previousCell
+      .find("a")
+      .map((_, a) => ($(a).attr("href") ?? "").replace(/^\/wiki\//, ""))
+      .get();
+  }
+
+  return { minLevel, prerequisiteQuestSlugs, loyaltyNotes };
 }

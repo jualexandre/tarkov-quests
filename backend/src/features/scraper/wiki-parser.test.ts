@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseQuestsPage, parseRequiredItems } from "./wiki-parser";
+import { parseQuestsPage, parseRequiredItems, parseRequirements } from "./wiki-parser";
 import type { RequiredItem } from "../quests/quest.types";
 
 function isRequiredItem(entry: { kind: "item" | "divider" }): entry is RequiredItem {
@@ -377,5 +377,109 @@ describe("parseRequiredItems", () => {
     expect(items).toHaveLength(3);
     expect(items.map((i) => i.name)).toEqual(["Malboro Cigarettes", "Strike Cigarettes", "Wilston cigarettes"]);
     expect(items[2].notes).toContain("Can be crafted in the");
+  });
+});
+
+describe("parseRequirements", () => {
+  function buildDetailJson(bodyHtml: string): string {
+    return JSON.stringify({ parse: { text: { "*": bodyHtml } } });
+  }
+
+  it("returns all-empty defaults when the page has neither a Requirements section nor a Related quests block", () => {
+    const requirements = parseRequirements(buildDetailJson("<p>Nothing here.</p>"));
+    expect(requirements).toEqual({ minLevel: null, prerequisiteQuestSlugs: [], loyaltyNotes: [] });
+  });
+
+  it("parses a plain level requirement", () => {
+    const html = `
+      <h2><span class="mw-headline" id="Requirements">Requirements</span></h2>
+      <ul><li>Must be level 30 to start this quest.</li></ul>
+    `;
+    const requirements = parseRequirements(buildDetailJson(html));
+    expect(requirements.minLevel).toBe(30);
+    expect(requirements.loyaltyNotes).toEqual([]);
+  });
+
+  it("keeps a loyalty-level line as an informational note instead of a level requirement", () => {
+    const html = `
+      <h2><span class="mw-headline" id="Requirements">Requirements</span></h2>
+      <ul><li>Must reach Loyalty Level 2 with <a href="/wiki/Prapor">Prapor</a> to obtain this quest.</li></ul>
+    `;
+    const requirements = parseRequirements(buildDetailJson(html));
+    expect(requirements.minLevel).toBeNull();
+    expect(requirements.loyaltyNotes).toHaveLength(1);
+    expect(requirements.loyaltyNotes[0]).toContain("Loyalty Level 2");
+    expect(requirements.loyaltyNotes[0]).toContain("Prapor");
+  });
+
+  it("parses both a level requirement and a loyalty note from the same page", () => {
+    const html = `
+      <h2><span class="mw-headline" id="Requirements">Requirements</span></h2>
+      <ul>
+        <li>Must be level 27 to start this quest.</li>
+        <li>Must reach Loyalty Level 4 with <a href="/wiki/Mechanic">Mechanic</a> to obtain this quest.</li>
+      </ul>
+    `;
+    const requirements = parseRequirements(buildDetailJson(html));
+    expect(requirements.minLevel).toBe(27);
+    expect(requirements.loyaltyNotes).toHaveLength(1);
+    expect(requirements.loyaltyNotes[0]).toContain("Mechanic");
+  });
+
+  it("keeps links inside a loyalty note absolute and opening in a new tab", () => {
+    const html = `
+      <h2><span class="mw-headline" id="Requirements">Requirements</span></h2>
+      <ul><li>Must reach Loyalty Level 2 with <a href="/wiki/Prapor">Prapor</a> to obtain this quest.</li></ul>
+    `;
+    const requirements = parseRequirements(buildDetailJson(html));
+    expect(requirements.loyaltyNotes[0]).toContain('href="https://escapefromtarkov.fandom.com/wiki/Prapor"');
+    expect(requirements.loyaltyNotes[0]).toContain('target="_blank"');
+  });
+
+  it("parses a single prerequisite quest from the Related quests infobox", () => {
+    const html = `
+      <table class="va-infobox-group"><tbody>
+        <tr><th class="va-infobox-header" colspan="3">Related quests</th></tr>
+        <tr>
+          <td class="va-infobox-content">Previous:<br /><a href="/wiki/The_Punisher_-_Part_2">The Punisher - Part 2</a></td>
+          <td class="va-infobox-content">Leads to:<br /><a href="/wiki/The_Punisher_-_Part_4">The Punisher - Part 4</a></td>
+        </tr>
+      </tbody></table>
+    `;
+    const requirements = parseRequirements(buildDetailJson(html));
+    expect(requirements.prerequisiteQuestSlugs).toEqual(["The_Punisher_-_Part_2"]);
+  });
+
+  it("parses multiple prerequisite quests when Previous lists more than one link", () => {
+    const html = `
+      <table class="va-infobox-group"><tbody>
+        <tr><th class="va-infobox-header" colspan="3">Related quests</th></tr>
+        <tr>
+          <td class="va-infobox-content">Previous:<br /><a href="/wiki/Quest_A">Quest A</a><br /><a href="/wiki/Quest_B">Quest B</a></td>
+          <td class="va-infobox-content">Leads to:<br /><a href="/wiki/Quest_C">Quest C</a></td>
+        </tr>
+      </tbody></table>
+    `;
+    const requirements = parseRequirements(buildDetailJson(html));
+    expect(requirements.prerequisiteQuestSlugs).toEqual(["Quest_A", "Quest_B"]);
+  });
+
+  it("returns no prerequisites when Previous is the '-' placeholder (first quest in a chain)", () => {
+    const html = `
+      <table class="va-infobox-group"><tbody>
+        <tr><th class="va-infobox-header" colspan="3">Related quests</th></tr>
+        <tr>
+          <td class="va-infobox-content">Previous:<br />-</td>
+          <td class="va-infobox-content">Leads to:<br /><a href="/wiki/The_Punisher_-_Part_2">The Punisher - Part 2</a></td>
+        </tr>
+      </tbody></table>
+    `;
+    const requirements = parseRequirements(buildDetailJson(html));
+    expect(requirements.prerequisiteQuestSlugs).toEqual([]);
+  });
+
+  it("returns no prerequisites when the page has no Related quests infobox at all", () => {
+    const requirements = parseRequirements(buildDetailJson("<p>Standalone quest, no chain.</p>"));
+    expect(requirements.prerequisiteQuestSlugs).toEqual([]);
   });
 });
