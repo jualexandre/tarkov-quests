@@ -2,6 +2,16 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import type { Observable } from "rxjs";
 
+export interface RequiredItemDto {
+  name: string;
+  wikiUrl: string | null;
+  iconUrl: string | null;
+  amount: number;
+  requirement: string;
+  findInRaid: boolean;
+  notes: string;
+}
+
 export interface QuestDto {
   id: number;
   traderId: number;
@@ -10,6 +20,7 @@ export interface QuestDto {
   wikiUrl: string;
   objectives: string[];
   rewards: string[];
+  requiredItems: RequiredItemDto[];
   completed: boolean;
   active: boolean;
   lastSeenAt: string;
