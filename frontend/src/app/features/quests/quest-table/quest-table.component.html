@@ -41,14 +41,14 @@
           <td class="py-2 pr-4 text-[var(--color-text-muted)]">
             <ul class="list-disc list-inside space-y-0.5">
               @for (objective of quest.objectives; track $index) {
-                <li>{{ objective }}</li>
+                <li [innerHTML]="objective"></li>
               }
             </ul>
           </td>
           <td class="py-2 text-[var(--color-text-muted)]">
             <ul class="list-disc list-inside space-y-0.5">
               @for (reward of quest.rewards; track $index) {
-                <li>{{ reward }}</li>
+                <li [innerHTML]="reward"></li>
               }
             </ul>
           </td>

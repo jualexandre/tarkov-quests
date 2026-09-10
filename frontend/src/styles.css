@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Classes used in quest objective/reward HTML injected via [innerHTML] from the
+   backend's wiki scrape (backend/src/features/scraper/wiki-parser.ts) — not
+   visible to Tailwind's content scanner since they never appear as literal
+   strings in frontend source files. */
+@source inline("text-red-400 text-green-400 hover:text-[var(--color-accent)]");
+
 @theme {
   --color-bg: #0f0f12;
   --color-surface: #1a1a1f;
