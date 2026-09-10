@@ -17,4 +17,8 @@ export class TraderTabsComponent {
   onSelect(id: number): void {
     this.traderSelected.emit(id);
   }
+
+  completedCount(trader: TraderDto): number {
+    return trader.quests.filter((quest) => quest.completed).length;
+  }
 }

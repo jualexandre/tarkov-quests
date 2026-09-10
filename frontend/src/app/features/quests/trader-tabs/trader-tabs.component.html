@@ -10,7 +10,10 @@
       (click)="onSelect(trader.id)"
     >
       <app-trader-avatar [name]="trader.name" [imageUrl]="trader.imageUrl" size="md"></app-trader-avatar>
-      <span class="font-medium">{{ trader.name }}</span>
+      <span class="flex flex-col leading-tight items-start">
+        <span class="font-medium">{{ trader.name }}</span>
+        <span class="text-sm text-[var(--color-text-muted)]">{{ completedCount(trader) }}/{{ trader.quests.length }}</span>
+      </span>
     </button>
   }
 </div>
