@@ -2,8 +2,9 @@
   @for (trader of traders; track trader.id) {
     <button
       type="button"
-      class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)] transition-colors"
+      class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border bg-[var(--color-surface)] hover:border-[var(--color-accent)] transition-colors"
       [class.border-[var(--color-accent)]]="trader.id === selectedTraderId"
+      [class.border-[var(--color-border)]]="trader.id !== selectedTraderId"
       [class.text-[var(--color-accent)]]="trader.id === selectedTraderId"
       [attr.aria-pressed]="trader.id === selectedTraderId"
       (click)="onSelect(trader.id)"
