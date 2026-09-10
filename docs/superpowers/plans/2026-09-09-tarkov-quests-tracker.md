@@ -19,7 +19,7 @@
 - Scrape source: `https://escapefromtarkov.fandom.com/api.php?action=parse&page=Quests&format=json&prop=text` (NOT the plain wiki URL — that is Cloudflare-blocked).
 - Quest natural key for upsert: `wikiSlug` (derived from the quest link's `href`, e.g. `/wiki/Shooting_Cans` → `Shooting_Cans`).
 - Scraping is synchronous (no job queue/background worker).
-- Two Docker containers (`backend`, `frontend`) via one root `docker-compose.yml`; SQLite file lives on a named volume.
+- Two Docker containers (`backend`, `frontend`) via one root `../../../run/docker-compose.yml`; SQLite file lives on a named volume.
 - Follow TDD: write the failing test before the implementation in every task below.
 
 ---
@@ -2423,7 +2423,7 @@ git commit -m "feat(frontend): add nginx-based production Dockerfile"
 ### Task 12: Root docker-compose + end-to-end verification
 
 **Files:**
-- Create: `docker-compose.yml`
+- Create: `../../../run/docker-compose.yml`
 - Create: `.gitignore` (root)
 
 **Interfaces:**
@@ -2440,7 +2440,7 @@ dist/
 
 - [ ] **Step 2: Create docker-compose.yml**
 
-Create `docker-compose.yml`:
+Create `../../../run/docker-compose.yml`:
 ```yaml
 services:
   backend:
