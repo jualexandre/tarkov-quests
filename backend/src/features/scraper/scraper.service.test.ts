@@ -24,6 +24,35 @@ function buildFakeApiResponse() {
   });
 }
 
+function buildFakeDetailResponseWithoutItems(): string {
+  return JSON.stringify({ parse: { text: { "*": "<p>No items on this page.</p>" } } });
+}
+
+function buildFakeDetailResponseWithItem(): string {
+  return JSON.stringify({
+    parse: {
+      text: {
+        "*": `
+          <table class="wikitable">
+            <tbody>
+              <tr><th colspan="7">Related Quest Items</th></tr>
+              <tr><th>Icon</th><th>Item name</th><th>Amount</th><th>Requirement</th><th>Find in raid</th><th>Notes</th></tr>
+              <tr>
+                <td><img data-src="https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/d/d0/Docs_0060_icon.png" /></td>
+                <td><a href="/wiki/Secure_Folder_0060">Secure Folder 0060</a></td>
+                <td>1</td>
+                <td>Handover item</td>
+                <th><font color="red">Yes</font></th>
+                <td>Quest item, transferred on pickup.</td>
+              </tr>
+            </tbody>
+          </table>
+        `,
+      },
+    },
+  });
+}
+
 describe("createScraperService", () => {
   it("upserts the trader and quest parsed from the page, then deactivates unseen quests", async () => {
     const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
@@ -52,22 +81,27 @@ describe("createScraperService", () => {
       deactivateNotIn: vi.fn().mockResolvedValue(2),
     };
     const fetchQuestsPageJson = vi.fn().mockResolvedValue(buildFakeApiResponse());
-    const downloadTraderImage = vi.fn().mockResolvedValue("/trader-images/prapor.png");
+    const fetchQuestDetailJson = vi.fn().mockResolvedValue(buildFakeDetailResponseWithoutItems());
+    const downloadTraderImage = vi.fn().mockResolvedValue("/api/trader-images/prapor.png");
+    const downloadItemImage = vi.fn().mockResolvedValue(null);
 
     const service = createScraperService({
       traderRepository,
       questRepository,
       fetchQuestsPageJson,
+      fetchQuestDetailJson,
       downloadTraderImage,
+      downloadItemImage,
     });
     const summary = await service.runScrape();
 
     expect(downloadTraderImage).toHaveBeenCalledWith("https://example.com/prapor.png", "prapor");
+    expect(fetchQuestDetailJson).toHaveBeenCalledWith("Debut");
     expect(traderRepository.upsertByName).toHaveBeenCalledWith({
       name: "Prapor",
       slug: "prapor",
       tabOrder: 0,
-      imageUrl: "/trader-images/prapor.png",
+      imageUrl: "/api/trader-images/prapor.png",
     });
     expect(questRepository.upsertBySlug).toHaveBeenCalledWith({
       traderId: 1,
@@ -80,6 +114,114 @@ describe("createScraperService", () => {
     });
     expect(questRepository.deactivateNotIn).toHaveBeenCalledWith(["Debut"]);
     expect(summary).toEqual({ added: 1, updated: 0, deactivated: 2, totalQuests: 1 });
+  });
+
+  it("fetches, parses, and localizes required items from each quest's detail page", async () => {
+    const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
+    const upsertedQuest = {
+      id: 1,
+      traderId: 1,
+      name: "Debut",
+      wikiSlug: "Debut",
+      wikiUrl: "/wiki/Debut",
+      objectives: [],
+      rewards: [],
+      requiredItems: [],
+      completed: false,
+      active: true,
+      lastSeenAt: new Date(),
+    };
+
+    const traderRepository: TraderRepository = {
+      upsertByName: vi.fn().mockResolvedValue(upsertedTrader),
+      findAll: vi.fn(),
+    };
+    const questRepository: QuestRepository = {
+      upsertBySlug: vi.fn().mockResolvedValue(upsertedQuest),
+      updateCompleted: vi.fn(),
+      findAllActiveGroupedByTrader: vi.fn().mockResolvedValue([]),
+      deactivateNotIn: vi.fn().mockResolvedValue(0),
+    };
+    const fetchQuestsPageJson = vi.fn().mockResolvedValue(buildFakeApiResponse());
+    const fetchQuestDetailJson = vi.fn().mockResolvedValue(buildFakeDetailResponseWithItem());
+    const downloadTraderImage = vi.fn().mockResolvedValue("/api/trader-images/prapor.png");
+    const downloadItemImage = vi.fn().mockResolvedValue("/api/item-images/Secure_Folder_0060.png");
+
+    const service = createScraperService({
+      traderRepository,
+      questRepository,
+      fetchQuestsPageJson,
+      fetchQuestDetailJson,
+      downloadTraderImage,
+      downloadItemImage,
+    });
+    await service.runScrape();
+
+    expect(downloadItemImage).toHaveBeenCalledWith(
+      "https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/d/d0/Docs_0060_icon.png",
+      "Secure_Folder_0060"
+    );
+    expect(questRepository.upsertBySlug).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requiredItems: [
+          {
+            name: "Secure Folder 0060",
+            wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
+            iconUrl: "/api/item-images/Secure_Folder_0060.png",
+            amount: 1,
+            requirement: "Handover item",
+            findInRaid: true,
+            notes: "Quest item, transferred on pickup.",
+          },
+        ],
+      })
+    );
+  });
+
+  it("uses an empty required-items list and keeps scraping when a quest's detail-page fetch fails", async () => {
+    const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
+    const upsertedQuest = {
+      id: 1,
+      traderId: 1,
+      name: "Debut",
+      wikiSlug: "Debut",
+      wikiUrl: "/wiki/Debut",
+      objectives: [],
+      rewards: [],
+      requiredItems: [],
+      completed: false,
+      active: true,
+      lastSeenAt: new Date(),
+    };
+
+    const traderRepository: TraderRepository = {
+      upsertByName: vi.fn().mockResolvedValue(upsertedTrader),
+      findAll: vi.fn(),
+    };
+    const questRepository: QuestRepository = {
+      upsertBySlug: vi.fn().mockResolvedValue(upsertedQuest),
+      updateCompleted: vi.fn(),
+      findAllActiveGroupedByTrader: vi.fn().mockResolvedValue([]),
+      deactivateNotIn: vi.fn().mockResolvedValue(0),
+    };
+    const fetchQuestsPageJson = vi.fn().mockResolvedValue(buildFakeApiResponse());
+    const fetchQuestDetailJson = vi.fn().mockRejectedValue(new Error("HTTP 503"));
+    const downloadTraderImage = vi.fn().mockResolvedValue(null);
+    const downloadItemImage = vi.fn();
+
+    const service = createScraperService({
+      traderRepository,
+      questRepository,
+      fetchQuestsPageJson,
+      fetchQuestDetailJson,
+      downloadTraderImage,
+      downloadItemImage,
+    });
+    const summary = await service.runScrape();
+
+    expect(summary.totalQuests).toBe(1);
+    expect(downloadItemImage).not.toHaveBeenCalled();
+    expect(questRepository.upsertBySlug).toHaveBeenCalledWith(expect.objectContaining({ requiredItems: [] }));
   });
 
   it("refuses to deactivate every quest when the parsed page yields zero quests", async () => {
@@ -107,13 +249,17 @@ describe("createScraperService", () => {
       deactivateNotIn: vi.fn().mockResolvedValue(0),
     };
     const fetchQuestsPageJson = vi.fn().mockResolvedValue(emptyPageResponse);
+    const fetchQuestDetailJson = vi.fn();
     const downloadTraderImage = vi.fn().mockResolvedValue(null);
+    const downloadItemImage = vi.fn();
 
     const service = createScraperService({
       traderRepository,
       questRepository,
       fetchQuestsPageJson,
+      fetchQuestDetailJson,
       downloadTraderImage,
+      downloadItemImage,
     });
 
     await expect(service.runScrape()).rejects.toThrow(

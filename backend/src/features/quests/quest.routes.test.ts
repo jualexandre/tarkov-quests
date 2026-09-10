@@ -24,7 +24,12 @@ describe("PATCH /api/quests/:id", () => {
     } as unknown as QuestRepository;
     const scraperService = {} as ScraperService;
 
-    const app = createApp({ questRepository, scraperService, traderImagesDir: "/tmp/test-trader-images" });
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
     const response = await request(app).patch("/api/quests/1").send({ completed: true });
 
     expect(response.status).toBe(200);
@@ -35,7 +40,12 @@ describe("PATCH /api/quests/:id", () => {
   it("returns 400 when completed is not a boolean", async () => {
     const questRepository = {} as unknown as QuestRepository;
     const scraperService = {} as ScraperService;
-    const app = createApp({ questRepository, scraperService, traderImagesDir: "/tmp/test-trader-images" });
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
 
     const response = await request(app).patch("/api/quests/1").send({ completed: "yes" });
 
@@ -45,7 +55,12 @@ describe("PATCH /api/quests/:id", () => {
   it("returns 400 when the id param is not numeric", async () => {
     const questRepository = {} as unknown as QuestRepository;
     const scraperService = {} as ScraperService;
-    const app = createApp({ questRepository, scraperService, traderImagesDir: "/tmp/test-trader-images" });
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
 
     const response = await request(app).patch("/api/quests/abc").send({ completed: true });
 
@@ -55,7 +70,12 @@ describe("PATCH /api/quests/:id", () => {
   it("returns 400 when the request has no body", async () => {
     const questRepository = {} as unknown as QuestRepository;
     const scraperService = {} as ScraperService;
-    const app = createApp({ questRepository, scraperService, traderImagesDir: "/tmp/test-trader-images" });
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
 
     const response = await request(app).patch("/api/quests/1").send();
 

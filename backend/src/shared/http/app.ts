@@ -10,6 +10,7 @@ export interface AppDeps {
   questRepository: QuestRepository;
   scraperService: ScraperService;
   traderImagesDir: string;
+  itemImagesDir: string;
 }
 
 export function createApp(deps: AppDeps): Express {
@@ -17,6 +18,7 @@ export function createApp(deps: AppDeps): Express {
   app.use(express.json());
 
   app.use("/api/trader-images", express.static(deps.traderImagesDir));
+  app.use("/api/item-images", express.static(deps.itemImagesDir));
   app.use("/api/traders", createTraderRouter(deps.questRepository));
   app.use("/api/quests", createQuestRouter(deps.questRepository));
   app.use("/api/scrape", createScraperRouter(deps.scraperService));

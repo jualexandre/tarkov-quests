@@ -10,7 +10,12 @@ describe("POST /api/scrape", () => {
     const scraperService: ScraperService = { runScrape: vi.fn().mockResolvedValue(summary) };
     const questRepository = {} as unknown as QuestRepository;
 
-    const app = createApp({ questRepository, scraperService, traderImagesDir: "/tmp/test-trader-images" });
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
     const response = await request(app).post("/api/scrape");
 
     expect(response.status).toBe(200);

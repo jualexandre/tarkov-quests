@@ -1,10 +1,12 @@
 import type { TraderRepository } from "../traders/trader.types";
-import type { QuestRepository } from "../quests/quest.types";
-import { parseQuestsPage } from "./wiki-parser";
+import type { QuestRepository, RequiredItem } from "../quests/quest.types";
+import { parseQuestsPage, parseRequiredItems } from "./wiki-parser";
+import { mapWithConcurrency } from "./concurrency";
 import type { ScraperService, ScrapeSummary } from "./scraper.types";
 
 const QUESTS_PAGE_API_URL =
   "https://escapefromtarkov.fandom.com/api.php?action=parse&page=Quests&format=json&prop=text";
+const DETAIL_FETCH_CONCURRENCY = 8;
 
 export async function fetchQuestsPageJson(): Promise<string> {
   const response = await fetch(QUESTS_PAGE_API_URL, {
@@ -16,15 +18,56 @@ export async function fetchQuestsPageJson(): Promise<string> {
   return response.text();
 }
 
-function slugifyTraderName(name: string): string {
+export async function fetchQuestDetailJson(wikiSlug: string): Promise<string> {
+  const url = `https://escapefromtarkov.fandom.com/api.php?action=parse&page=${wikiSlug}&format=json&prop=text`;
+  const response = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch quest detail page for "${wikiSlug}": HTTP ${response.status}`);
+  }
+  return response.text();
+}
+
+function slugify(name: string): string {
   return name.toLowerCase().trim().replace(/\s+/g, "-");
+}
+
+function itemSlugFromWikiUrl(wikiUrl: string | null, fallbackName: string): string {
+  if (wikiUrl) {
+    const marker = "/wiki/";
+    const index = wikiUrl.indexOf(marker);
+    if (index !== -1) {
+      return wikiUrl.slice(index + marker.length).split(/[?#]/)[0];
+    }
+  }
+  return slugify(fallbackName);
 }
 
 export interface ScraperServiceDeps {
   traderRepository: TraderRepository;
   questRepository: QuestRepository;
   fetchQuestsPageJson: () => Promise<string>;
+  fetchQuestDetailJson: (wikiSlug: string) => Promise<string>;
   downloadTraderImage: (imageUrl: string | null, slug: string) => Promise<string | null>;
+  downloadItemImage: (imageUrl: string | null, slug: string) => Promise<string | null>;
+}
+
+async function fetchRequiredItems(
+  wikiSlug: string,
+  deps: Pick<ScraperServiceDeps, "fetchQuestDetailJson" | "downloadItemImage">
+): Promise<RequiredItem[]> {
+  try {
+    const detailJson = await deps.fetchQuestDetailJson(wikiSlug);
+    const items = parseRequiredItems(detailJson);
+    return await Promise.all(
+      items.map(async (item) => ({
+        ...item,
+        iconUrl: await deps.downloadItemImage(item.iconUrl, itemSlugFromWikiUrl(item.wikiUrl, item.name)),
+      }))
+    );
+  } catch (err) {
+    console.warn(`Failed to fetch required items for "${wikiSlug}": ${(err as Error).message}`);
+    return [];
+  }
 }
 
 export function createScraperService(deps: ScraperServiceDeps): ScraperService {
@@ -33,12 +76,13 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
       const json = await deps.fetchQuestsPageJson();
       const parsedTraders = parseQuestsPage(json);
 
-      let added = 0;
-      let updated = 0;
-      const seenSlugs: string[] = [];
+      const questsToUpsert: Array<{
+        traderId: number;
+        parsedQuest: (typeof parsedTraders)[number]["quests"][number];
+      }> = [];
 
       for (const parsedTrader of parsedTraders) {
-        const slug = slugifyTraderName(parsedTrader.name);
+        const slug = slugify(parsedTrader.name);
         const imageUrl = await deps.downloadTraderImage(parsedTrader.imageUrl, slug);
         const trader = await deps.traderRepository.upsertByName({
           name: parsedTrader.name,
@@ -48,20 +92,34 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
         });
 
         for (const parsedQuest of parsedTrader.quests) {
-          const existingCount = await countExistingBySlug(deps.questRepository, parsedQuest.wikiSlug);
-          const quest = await deps.questRepository.upsertBySlug({
-            traderId: trader.id,
-            name: parsedQuest.name,
-            wikiSlug: parsedQuest.wikiSlug,
-            wikiUrl: parsedQuest.wikiUrl,
-            objectives: parsedQuest.objectives,
-            rewards: parsedQuest.rewards,
-            requiredItems: [],
-          });
-          seenSlugs.push(quest.wikiSlug);
-          if (existingCount === 0) added += 1;
-          else updated += 1;
+          questsToUpsert.push({ traderId: trader.id, parsedQuest });
         }
+      }
+
+      const requiredItemsByWikiSlug = new Map<string, RequiredItem[]>();
+      await mapWithConcurrency(questsToUpsert, DETAIL_FETCH_CONCURRENCY, async ({ parsedQuest }) => {
+        const items = await fetchRequiredItems(parsedQuest.wikiSlug, deps);
+        requiredItemsByWikiSlug.set(parsedQuest.wikiSlug, items);
+      });
+
+      let added = 0;
+      let updated = 0;
+      const seenSlugs: string[] = [];
+
+      for (const { traderId, parsedQuest } of questsToUpsert) {
+        const existingCount = await countExistingBySlug(deps.questRepository, parsedQuest.wikiSlug);
+        const quest = await deps.questRepository.upsertBySlug({
+          traderId,
+          name: parsedQuest.name,
+          wikiSlug: parsedQuest.wikiSlug,
+          wikiUrl: parsedQuest.wikiUrl,
+          objectives: parsedQuest.objectives,
+          rewards: parsedQuest.rewards,
+          requiredItems: requiredItemsByWikiSlug.get(parsedQuest.wikiSlug) ?? [],
+        });
+        seenSlugs.push(quest.wikiSlug);
+        if (existingCount === 0) added += 1;
+        else updated += 1;
       }
 
       if (seenSlugs.length === 0) {

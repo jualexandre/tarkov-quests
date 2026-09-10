@@ -35,7 +35,12 @@ describe("GET /api/traders", () => {
     } as unknown as QuestRepository;
     const scraperService = {} as ScraperService;
 
-    const app = createApp({ questRepository, scraperService, traderImagesDir: "/tmp/test-trader-images" });
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
     const response = await request(app).get("/api/traders");
 
     expect(response.status).toBe(200);
