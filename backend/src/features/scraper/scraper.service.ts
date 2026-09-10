@@ -7,10 +7,13 @@ import type { ScraperService, ScrapeSummary } from "./scraper.types";
 const QUESTS_PAGE_API_URL =
   "https://escapefromtarkov.fandom.com/api.php?action=parse&page=Quests&format=json&prop=text";
 const DETAIL_FETCH_CONCURRENCY = 8;
+const ICON_DOWNLOAD_CONCURRENCY = 8;
+const REQUEST_TIMEOUT_MS = 20_000;
 
 export async function fetchQuestsPageJson(): Promise<string> {
   const response = await fetch(QUESTS_PAGE_API_URL, {
     headers: { "User-Agent": "Mozilla/5.0" },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw new Error(`Failed to fetch quests page: HTTP ${response.status}`);
@@ -20,7 +23,10 @@ export async function fetchQuestsPageJson(): Promise<string> {
 
 export async function fetchQuestDetailJson(wikiSlug: string): Promise<string> {
   const url = `https://escapefromtarkov.fandom.com/api.php?action=parse&page=${wikiSlug}&format=json&prop=text`;
-  const response = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+  const response = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0" },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch quest detail page for "${wikiSlug}": HTTP ${response.status}`);
   }
@@ -31,7 +37,7 @@ function slugify(name: string): string {
   return name.toLowerCase().trim().replace(/\s+/g, "-");
 }
 
-function itemSlugFromWikiUrl(wikiUrl: string | null, fallbackName: string): string {
+function rawItemSlug(wikiUrl: string | null, fallbackName: string): string {
   if (wikiUrl) {
     const marker = "/wiki/";
     const index = wikiUrl.indexOf(marker);
@@ -42,6 +48,14 @@ function itemSlugFromWikiUrl(wikiUrl: string | null, fallbackName: string): stri
   return slugify(fallbackName);
 }
 
+/**
+ * The wiki is third-party, user-editable HTML, and the slug ends up in a filesystem
+ * path. Reduce it to a safe single path segment so it can never traverse directories.
+ */
+function itemSlugFromWikiUrl(wikiUrl: string | null, fallbackName: string): string {
+  return rawItemSlug(wikiUrl, fallbackName).replace(/[^A-Za-z0-9_-]/g, "_");
+}
+
 export interface ScraperServiceDeps {
   traderRepository: TraderRepository;
   questRepository: QuestRepository;
@@ -49,25 +63,6 @@ export interface ScraperServiceDeps {
   fetchQuestDetailJson: (wikiSlug: string) => Promise<string>;
   downloadTraderImage: (imageUrl: string | null, slug: string) => Promise<string | null>;
   downloadItemImage: (imageUrl: string | null, slug: string) => Promise<string | null>;
-}
-
-async function fetchRequiredItems(
-  wikiSlug: string,
-  deps: Pick<ScraperServiceDeps, "fetchQuestDetailJson" | "downloadItemImage">
-): Promise<RequiredItem[]> {
-  try {
-    const detailJson = await deps.fetchQuestDetailJson(wikiSlug);
-    const items = parseRequiredItems(detailJson);
-    return await Promise.all(
-      items.map(async (item) => ({
-        ...item,
-        iconUrl: await deps.downloadItemImage(item.iconUrl, itemSlugFromWikiUrl(item.wikiUrl, item.name)),
-      }))
-    );
-  } catch (err) {
-    console.warn(`Failed to fetch required items for "${wikiSlug}": ${(err as Error).message}`);
-    return [];
-  }
 }
 
 export function createScraperService(deps: ScraperServiceDeps): ScraperService {
@@ -96,10 +91,31 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
         }
       }
 
+      // Phase A: fetch and parse each quest's detail page. Icon URLs stay remote here.
       const requiredItemsByWikiSlug = new Map<string, RequiredItem[]>();
+      let detailFetchFailures = 0;
       await mapWithConcurrency(questsToUpsert, DETAIL_FETCH_CONCURRENCY, async ({ parsedQuest }) => {
-        const items = await fetchRequiredItems(parsedQuest.wikiSlug, deps);
-        requiredItemsByWikiSlug.set(parsedQuest.wikiSlug, items);
+        try {
+          const detailJson = await deps.fetchQuestDetailJson(parsedQuest.wikiSlug);
+          requiredItemsByWikiSlug.set(parsedQuest.wikiSlug, parseRequiredItems(detailJson));
+        } catch (err) {
+          detailFetchFailures += 1;
+          console.warn(
+            `Failed to fetch required items for "${parsedQuest.wikiSlug}": ${(err as Error).message}`
+          );
+          requiredItemsByWikiSlug.set(parsedQuest.wikiSlug, []);
+        }
+      });
+
+      // Phase B: download every item icon under a single global concurrency bound.
+      // `.flat()` keeps the same object references held by the per-quest arrays above,
+      // so mutating `iconUrl` in place updates what the upsert loop reads.
+      const allRequiredItems = [...requiredItemsByWikiSlug.values()].flat();
+      await mapWithConcurrency(allRequiredItems, ICON_DOWNLOAD_CONCURRENCY, async (item) => {
+        item.iconUrl = await deps.downloadItemImage(
+          item.iconUrl,
+          itemSlugFromWikiUrl(item.wikiUrl, item.name)
+        );
       });
 
       const existingGrouped = await deps.questRepository.findAllActiveGroupedByTrader();
@@ -132,7 +148,7 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
 
       const deactivated = await deps.questRepository.deactivateNotIn(seenSlugs);
 
-      return { added, updated, deactivated, totalQuests: seenSlugs.length };
+      return { added, updated, deactivated, totalQuests: seenSlugs.length, detailFetchFailures };
     },
   };
 }

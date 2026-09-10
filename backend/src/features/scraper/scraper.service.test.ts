@@ -113,7 +113,13 @@ describe("createScraperService", () => {
       requiredItems: [],
     });
     expect(questRepository.deactivateNotIn).toHaveBeenCalledWith(["Debut"]);
-    expect(summary).toEqual({ added: 1, updated: 0, deactivated: 2, totalQuests: 1 });
+    expect(summary).toEqual({
+      added: 1,
+      updated: 0,
+      deactivated: 2,
+      totalQuests: 1,
+      detailFetchFailures: 0,
+    });
   });
 
   it("fetches, parses, and localizes required items from each quest's detail page", async () => {
@@ -178,7 +184,7 @@ describe("createScraperService", () => {
     );
   });
 
-  it("uses an empty required-items list and keeps scraping when a quest's detail-page fetch fails", async () => {
+  it("reports the failure, uses an empty required-items list, and keeps scraping when a quest's detail-page fetch fails", async () => {
     const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
     const upsertedQuest = {
       id: 1,
@@ -220,6 +226,7 @@ describe("createScraperService", () => {
     const summary = await service.runScrape();
 
     expect(summary.totalQuests).toBe(1);
+    expect(summary.detailFetchFailures).toBe(1);
     expect(downloadItemImage).not.toHaveBeenCalled();
     expect(questRepository.upsertBySlug).toHaveBeenCalledWith(expect.objectContaining({ requiredItems: [] }));
   });

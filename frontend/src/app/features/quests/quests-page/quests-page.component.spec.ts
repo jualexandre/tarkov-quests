@@ -95,7 +95,7 @@ describe("QuestsPageComponent", () => {
 
   it("dispatches RunScrape when the scrape button is clicked", () => {
     setup();
-    questsApi.runScrape.mockReturnValue(of({ added: 0, updated: 0, deactivated: 0, totalQuests: 0 }));
+    questsApi.runScrape.mockReturnValue(of({ added: 0, updated: 0, deactivated: 0, totalQuests: 0, detailFetchFailures: 0 }));
     const button = fixture.nativeElement.querySelector("button") as HTMLButtonElement;
     button.click();
     expect(questsApi.runScrape).toHaveBeenCalled();

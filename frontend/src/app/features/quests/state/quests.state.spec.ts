@@ -59,7 +59,13 @@ describe("QuestsState", () => {
   });
 
   it("RunScrape stores the scrape summary and reloads traders", async () => {
-    const summary: ScrapeSummaryDto = { added: 1, updated: 0, deactivated: 0, totalQuests: 1 };
+    const summary: ScrapeSummaryDto = {
+      added: 1,
+      updated: 0,
+      deactivated: 0,
+      totalQuests: 1,
+      detailFetchFailures: 0,
+    };
     questsApi.runScrape.mockReturnValue(of(summary));
     questsApi.getTraders.mockReturnValue(of([trader]));
 

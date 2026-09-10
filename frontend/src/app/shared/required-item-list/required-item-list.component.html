@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-1.5">
-  @for (item of items; track item.name) {
+  @for (item of items; track $index) {
     <div class="flex items-center gap-1.5">
       @if (item.iconUrl) {
         <img [src]="item.iconUrl" [alt]="item.name" class="h-6 w-6 rounded object-cover shrink-0" />

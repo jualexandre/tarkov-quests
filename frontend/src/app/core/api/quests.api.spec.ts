@@ -35,7 +35,13 @@ describe("QuestsApi", () => {
   });
 
   it("runScrape() POSTs /api/scrape", () => {
-    const summary: ScrapeSummaryDto = { added: 1, updated: 2, deactivated: 0, totalQuests: 3 };
+    const summary: ScrapeSummaryDto = {
+      added: 1,
+      updated: 2,
+      deactivated: 0,
+      totalQuests: 3,
+      detailFetchFailures: 0,
+    };
     api.runScrape().subscribe((result) => expect(result).toEqual(summary));
     const req = httpMock.expectOne("/api/scrape");
     expect(req.request.method).toBe("POST");

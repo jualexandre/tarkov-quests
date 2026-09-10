@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import { join } from "node:path";
 
 const KNOWN_EXTENSIONS = ["png", "jpeg", "jpg", "gif", "webp"];
+const REQUEST_TIMEOUT_MS = 20_000;
 
 export function extensionFromImageUrl(url: string): string {
   let pathname = url;
@@ -51,7 +52,7 @@ export function createImageDownloader(deps: ImageDownloaderDeps): DownloadImage 
     if (await fileExists(localPath)) return publicPath;
 
     try {
-      const response = await fetchImpl(imageUrl);
+      const response = await fetchImpl(imageUrl, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const buffer = Buffer.from(await response.arrayBuffer());
       await mkdir(deps.dir);

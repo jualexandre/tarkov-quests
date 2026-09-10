@@ -79,7 +79,10 @@ describe("createImageDownloader", () => {
     const result = await downloadTraderImage(WIKI_IMAGE_URL, "prapor");
 
     expect(result).toBe("/api/trader-images/prapor.png");
-    expect(fetchImpl).toHaveBeenCalledWith(WIKI_IMAGE_URL);
+    expect(fetchImpl).toHaveBeenCalledWith(
+      WIKI_IMAGE_URL,
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
     expect(mkdir).toHaveBeenCalledWith("/data/trader-images");
     expect(writeFile).toHaveBeenCalledWith("/data/trader-images/prapor.png", expect.any(Buffer));
   });

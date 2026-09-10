@@ -18,6 +18,7 @@ export interface ScrapeSummary {
   updated: number;
   deactivated: number;
   totalQuests: number;
+  detailFetchFailures: number;
 }
 
 export interface ScraperService {

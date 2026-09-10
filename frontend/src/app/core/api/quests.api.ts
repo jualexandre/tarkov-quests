@@ -40,6 +40,7 @@ export interface ScrapeSummaryDto {
   updated: number;
   deactivated: number;
   totalQuests: number;
+  detailFetchFailures: number;
 }
 
 export interface QuestToggledEvent {

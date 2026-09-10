@@ -6,7 +6,7 @@ import type { ScraperService } from "./scraper.types";
 
 describe("POST /api/scrape", () => {
   it("runs the scraper and returns its summary", async () => {
-    const summary = { added: 2, updated: 10, deactivated: 1, totalQuests: 12 };
+    const summary = { added: 2, updated: 10, deactivated: 1, totalQuests: 12, detailFetchFailures: 0 };
     const scraperService: ScraperService = { runScrape: vi.fn().mockResolvedValue(summary) };
     const questRepository = {} as unknown as QuestRepository;
 

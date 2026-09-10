@@ -36,8 +36,8 @@
 
   @if (lastScrapeSummary$ | async; as summary) {
     <p class="text-sm text-[var(--color-text-muted)] mb-4">
-      Last scrape: {{ summary.added }} added, {{ summary.updated }} updated, {{ summary.deactivated }} deactivated
-      ({{ summary.totalQuests }} total).
+      Last scrape: {{ summary.added }} added, {{ summary.updated }} updated, {{ summary.deactivated }} deactivated,
+      {{ summary.detailFetchFailures }} detail-fetch failures ({{ summary.totalQuests }} total).
     </p>
   }
 
