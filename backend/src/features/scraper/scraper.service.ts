@@ -102,12 +102,16 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
         requiredItemsByWikiSlug.set(parsedQuest.wikiSlug, items);
       });
 
+      const existingGrouped = await deps.questRepository.findAllActiveGroupedByTrader();
+      const existingSlugs = new Set<string>(
+        existingGrouped.flatMap((trader) => trader.quests.map((q) => q.wikiSlug))
+      );
+
       let added = 0;
       let updated = 0;
       const seenSlugs: string[] = [];
 
       for (const { traderId, parsedQuest } of questsToUpsert) {
-        const existingCount = await countExistingBySlug(deps.questRepository, parsedQuest.wikiSlug);
         const quest = await deps.questRepository.upsertBySlug({
           traderId,
           name: parsedQuest.name,
@@ -118,8 +122,8 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
           requiredItems: requiredItemsByWikiSlug.get(parsedQuest.wikiSlug) ?? [],
         });
         seenSlugs.push(quest.wikiSlug);
-        if (existingCount === 0) added += 1;
-        else updated += 1;
+        if (existingSlugs.has(parsedQuest.wikiSlug)) updated += 1;
+        else added += 1;
       }
 
       if (seenSlugs.length === 0) {
@@ -131,13 +135,4 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
       return { added, updated, deactivated, totalQuests: seenSlugs.length };
     },
   };
-}
-
-async function countExistingBySlug(
-  questRepository: QuestRepository,
-  wikiSlug: string
-): Promise<number> {
-  const grouped = await questRepository.findAllActiveGroupedByTrader();
-  const exists = grouped.some((trader) => trader.quests.some((q) => q.wikiSlug === wikiSlug));
-  return exists ? 1 : 0;
 }

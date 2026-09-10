@@ -36,3 +36,4 @@ const httpServer = app.listen(port, () => {
   console.log(`Backend listening on port ${port}`);
 });
 httpServer.timeout = SCRAPE_TIMEOUT_MS;
+httpServer.requestTimeout = SCRAPE_TIMEOUT_MS;
