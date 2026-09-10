@@ -9,6 +9,22 @@ import type { TraderDto } from "../../../core/api/quests.api";
 
 const STORAGE_KEY = "tarkov-quests.selectedTraderId";
 
+function buildQuest(overrides: Partial<TraderDto["quests"][number]> = {}): TraderDto["quests"][number] {
+  return {
+    id: 1,
+    traderId: 1,
+    name: "Debut",
+    wikiSlug: "Debut",
+    wikiUrl: "/wiki/Debut",
+    objectives: [],
+    rewards: [],
+    completed: false,
+    active: true,
+    lastSeenAt: "2026-01-01T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
 describe("QuestsPageComponent", () => {
   let fixture: ComponentFixture<QuestsPageComponent>;
   let questsApi: { getTraders: Mock; updateQuestCompleted: Mock; runScrape: Mock };
@@ -78,5 +94,68 @@ describe("QuestsPageComponent", () => {
     const button = fixture.nativeElement.querySelector("button") as HTMLButtonElement;
     button.click();
     expect(questsApi.runScrape).toHaveBeenCalled();
+  });
+
+  describe("searching by quest name", () => {
+    const searchTraders: TraderDto[] = [
+      {
+        id: 1,
+        name: "Prapor",
+        slug: "prapor",
+        tabOrder: 0,
+        imageUrl: null,
+        quests: [buildQuest({ id: 1, traderId: 1, name: "Debut" })],
+      },
+      {
+        id: 2,
+        name: "Therapist",
+        slug: "therapist",
+        tabOrder: 1,
+        imageUrl: null,
+        quests: [buildQuest({ id: 2, traderId: 2, name: "Shortage" })],
+      },
+    ];
+
+    function searchInput(): HTMLInputElement {
+      return fixture.nativeElement.querySelector("input[type=search]") as HTMLInputElement;
+    }
+
+    function typeSearch(value: string): void {
+      const input = searchInput();
+      input.value = value;
+      input.dispatchEvent(new Event("input"));
+      fixture.detectChanges();
+    }
+
+    beforeEach(() => {
+      questsApi.getTraders.mockReturnValue(of(searchTraders));
+      setup();
+    });
+
+    it("shows the trader tabs and quest table, and no search results, when the search box is empty", () => {
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector("app-trader-tabs")).not.toBeNull();
+      expect(el.querySelector("app-quest-table")).not.toBeNull();
+      expect(el.querySelector("app-search-results")).toBeNull();
+    });
+
+    it("hides the trader tabs and shows matching quests from every trader, case-insensitively", () => {
+      typeSearch("short");
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector("app-trader-tabs")).toBeNull();
+      expect(el.querySelector("app-quest-table")).toBeNull();
+      const results = el.querySelector("app-search-results");
+      expect(results).not.toBeNull();
+      expect(results?.textContent).toContain("Shortage");
+      expect(results?.textContent).not.toContain("Debut");
+    });
+
+    it("restores the trader tabs and quest table once the search box is cleared", () => {
+      typeSearch("short");
+      typeSearch("");
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector("app-trader-tabs")).not.toBeNull();
+      expect(el.querySelector("app-search-results")).toBeNull();
+    });
   });
 });

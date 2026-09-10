@@ -1,6 +1,25 @@
 <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] p-4">
-  <header class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-bold">Tarkov Quests</h1>
+  <header class="flex items-center gap-4 mb-4">
+    <h1 class="text-2xl font-bold shrink-0">Tarkov Quests</h1>
+    <div class="relative flex-1">
+      <svg
+        class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-text-muted)]"
+        viewBox="0 0 20 20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="9" cy="9" r="6" />
+        <line x1="17" y1="17" x2="13.5" y2="13.5" />
+      </svg>
+      <input
+        type="search"
+        placeholder="Search quests by name, any trader..."
+        class="w-full rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] py-2 pl-9 pr-3 text-sm placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)]"
+        [value]="searchQuery()"
+        (input)="onSearchInput($event)"
+      />
+    </div>
     <button
       type="button"
       class="px-4 py-2 rounded-md bg-[var(--color-accent)] text-black font-medium hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
@@ -22,13 +41,17 @@
     </p>
   }
 
-  <app-trader-tabs
-    [traders]="traders()"
-    [selectedTraderId]="selectedTrader()?.id ?? null"
-    (traderSelected)="onTraderSelected($event)"
-  ></app-trader-tabs>
+  @if (searchResults(); as results) {
+    <app-search-results [results]="results" (questToggled)="onQuestToggled($event)"></app-search-results>
+  } @else {
+    <app-trader-tabs
+      [traders]="traders()"
+      [selectedTraderId]="selectedTrader()?.id ?? null"
+      (traderSelected)="onTraderSelected($event)"
+    ></app-trader-tabs>
 
-  @if (selectedTrader(); as trader) {
-    <app-quest-table [trader]="trader" (questToggled)="onQuestToggled($event)"></app-quest-table>
+    @if (selectedTrader(); as trader) {
+      <app-quest-table [trader]="trader" (questToggled)="onQuestToggled($event)"></app-quest-table>
+    }
   }
 </div>
