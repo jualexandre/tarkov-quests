@@ -161,7 +161,10 @@ export function parseRequiredItems(apiResponseJson: string): RequiredItem[] {
 
   const rows = table.find("tbody > tr").toArray();
   return rows.slice(2).map((row) => {
-    const cells = $(row).children("td, th");
+    // A table-progress-tracking table (e.g. quests with in-progress checkboxes)
+    // prefixes each data row with a checkbox cell that has no header counterpart,
+    // which would otherwise shift every column by one.
+    const cells = $(row).children("td, th").not(".table-progress-checkbox-cell");
     const iconUrl = extractIconUrl($, cells.eq(0));
     const { name, wikiUrl } = extractItemLink($, cells.eq(1));
     const amount = parseInt(cells.eq(2).text().trim(), 10) || 0;

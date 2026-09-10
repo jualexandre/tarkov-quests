@@ -165,4 +165,25 @@ describe("parseRequiredItems", () => {
     expect(key.notes).toContain('<a href="https://escapefromtarkov.fandom.com/wiki/Shoreline"');
     expect(key.notes).toContain('target="_blank"');
   });
+
+  it("parses items from a table-progress-tracking table with a leading checkbox column", () => {
+    const items = parseRequiredItems(loadDetailFixtureJson("quest-detail-with-checkbox-items.json"));
+    expect(items).toHaveLength(2);
+
+    const tea = items.find((i) => i.wikiUrl?.endsWith("42_Signature_Blend_English_Tea"))!;
+    expect(tea).toBeDefined();
+    expect(tea.name).toBe("42 Signature Blend English Tea");
+    expect(tea.iconUrl).toBe(
+      "https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/e/e6/EnglishTeaIcon.png/revision/latest?cb=20250110174041"
+    );
+    expect(tea.amount).toBe(1);
+    expect(tea.requirement).toBe("Handover item");
+    expect(tea.findInRaid).toBe(true);
+
+    const axe = items.find((i) => i.wikiUrl?.endsWith("Antique_axe"))!;
+    expect(axe).toBeDefined();
+    expect(axe.name).toBe("Antique axe");
+    expect(axe.amount).toBe(1);
+    expect(axe.findInRaid).toBe(true);
+  });
 });
