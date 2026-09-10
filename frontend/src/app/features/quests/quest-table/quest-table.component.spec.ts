@@ -75,4 +75,47 @@ describe("QuestTableComponent", () => {
 
     expect(emitted).toEqual([{ id: 1, completed: true }]);
   });
+
+  describe("ordering completed quests to the end", () => {
+    function buildTrader(completedIds: number[]): TraderDto {
+      return {
+        ...trader,
+        quests: [1, 2, 3, 4, 5].map((n) => ({
+          id: n,
+          traderId: 1,
+          name: `Quest ${n}`,
+          wikiSlug: `Quest_${n}`,
+          wikiUrl: `/wiki/Quest_${n}`,
+          objectives: [],
+          rewards: [],
+          completed: completedIds.includes(n),
+          active: true,
+          lastSeenAt: "2026-01-01T00:00:00.000Z",
+        })),
+      };
+    }
+
+    function renderedQuestNames(): string[] {
+      const el: HTMLElement = fixture.nativeElement;
+      return Array.from(el.querySelectorAll("tbody tr td:first-child p")).map((p) => p.textContent?.trim() ?? "");
+    }
+
+    it("keeps quests in their original order when none are completed", () => {
+      fixture.componentRef.setInput("trader", buildTrader([]));
+      fixture.detectChanges();
+      expect(renderedQuestNames()).toEqual(["Quest 1", "Quest 2", "Quest 3", "Quest 4", "Quest 5"]);
+    });
+
+    it("moves a completed quest to the end", () => {
+      fixture.componentRef.setInput("trader", buildTrader([1]));
+      fixture.detectChanges();
+      expect(renderedQuestNames()).toEqual(["Quest 2", "Quest 3", "Quest 4", "Quest 5", "Quest 1"]);
+    });
+
+    it("appends the next completed quest after the previously completed ones", () => {
+      fixture.componentRef.setInput("trader", buildTrader([1, 3]));
+      fixture.detectChanges();
+      expect(renderedQuestNames()).toEqual(["Quest 2", "Quest 4", "Quest 5", "Quest 1", "Quest 3"]);
+    });
+  });
 });
