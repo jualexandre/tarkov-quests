@@ -8,13 +8,7 @@
       [attr.aria-pressed]="trader.id === selectedTraderId"
       (click)="onSelect(trader.id)"
     >
-      @if (trader.imageUrl) {
-        <img [src]="trader.imageUrl" [alt]="trader.name" class="h-8 w-8 rounded-full object-cover" />
-      } @else {
-        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-border)] text-sm font-semibold">
-          {{ trader.name.charAt(0) }}
-        </span>
-      }
+      <app-trader-avatar [name]="trader.name" [imageUrl]="trader.imageUrl" size="md"></app-trader-avatar>
       <span class="font-medium">{{ trader.name }}</span>
     </button>
   }

@@ -1,0 +1,5 @@
+<ul class="list-disc list-inside space-y-0.5">
+  @for (item of items; track $index) {
+    <li [innerHTML]="item"></li>
+  }
+</ul>

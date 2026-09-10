@@ -12,45 +12,13 @@
       @for (quest of sortedQuests(); track quest.id) {
         <tr class="border-b border-[var(--color-border)] align-top">
           <td class="py-2 pr-2">
-            <div class="flex items-start gap-2">
-              <input
-                type="checkbox"
-                class="mt-1 h-4 w-4 accent-[var(--color-accent)]"
-                [checked]="quest.completed"
-                (change)="onToggleCompleted(quest.id, $event)"
-              />
-              <div>
-                <p
-                  class="font-medium"
-                  [class.line-through]="quest.completed"
-                  [class.text-[var(--color-text-muted)]]="quest.completed"
-                >
-                  {{ quest.name }}
-                </p>
-                <a
-                  [href]="wikiBaseUrl + quest.wikiUrl"
-                  target="_blank"
-                  rel="noopener"
-                  class="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-accent)]"
-                >
-                  Show on Wiki
-                </a>
-              </div>
-            </div>
+            <app-quest-cell [quest]="quest" (toggled)="questToggled.emit($event)"></app-quest-cell>
           </td>
           <td class="py-2 pr-4 text-[var(--color-text-muted)]">
-            <ul class="list-disc list-inside space-y-0.5">
-              @for (objective of quest.objectives; track $index) {
-                <li [innerHTML]="objective"></li>
-              }
-            </ul>
+            <app-quest-list [items]="quest.objectives"></app-quest-list>
           </td>
           <td class="py-2 text-[var(--color-text-muted)]">
-            <ul class="list-disc list-inside space-y-0.5">
-              @for (reward of quest.rewards; track $index) {
-                <li [innerHTML]="reward"></li>
-              }
-            </ul>
+            <app-quest-list [items]="quest.rewards"></app-quest-list>
           </td>
         </tr>
       } @empty {

@@ -1,27 +1,21 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import type { QuestDto, TraderDto } from "../../../core/api/quests.api";
+import { QuestCellComponent } from "../../../shared/quest-cell/quest-cell.component";
+import { QuestListComponent } from "../../../shared/quest-list/quest-list.component";
+import { sortByCompleted } from "../../../core/quest-sort";
+import type { QuestDto, TraderDto, QuestToggledEvent } from "../../../core/api/quests.api";
 
 @Component({
   selector: "app-quest-table",
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, QuestCellComponent, QuestListComponent],
   templateUrl: "./quest-table.component.html",
 })
 export class QuestTableComponent {
   @Input({ required: true }) trader!: TraderDto;
-  @Output() questToggled = new EventEmitter<{ id: number; completed: boolean }>();
-
-  wikiBaseUrl = "https://escapefromtarkov.fandom.com";
+  @Output() questToggled = new EventEmitter<QuestToggledEvent>();
 
   sortedQuests(): QuestDto[] {
-    const incomplete = this.trader.quests.filter((quest) => !quest.completed);
-    const completed = this.trader.quests.filter((quest) => quest.completed);
-    return [...incomplete, ...completed];
-  }
-
-  onToggleCompleted(id: number, event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.questToggled.emit({ id, completed: checked });
+    return sortByCompleted(this.trader.quests);
   }
 }

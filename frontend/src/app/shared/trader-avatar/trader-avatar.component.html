@@ -1,0 +1,10 @@
+@if (imageUrl) {
+  <img [src]="imageUrl" [alt]="name" class="rounded-full object-cover shrink-0" [class]="sizeClasses" />
+} @else {
+  <span
+    class="flex items-center justify-center rounded-full bg-[var(--color-border)] font-semibold shrink-0"
+    [class]="sizeClasses"
+  >
+    {{ name.charAt(0) }}
+  </span>
+}

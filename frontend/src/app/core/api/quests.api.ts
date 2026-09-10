@@ -31,6 +31,11 @@ export interface ScrapeSummaryDto {
   totalQuests: number;
 }
 
+export interface QuestToggledEvent {
+  id: number;
+  completed: boolean;
+}
+
 @Injectable({ providedIn: "root" })
 export class QuestsApi {
   constructor(private readonly http: HttpClient) {}

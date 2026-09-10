@@ -1,0 +1,21 @@
+<div class="flex items-start gap-2">
+  <input
+    type="checkbox"
+    class="mt-1 h-4 w-4 accent-[var(--color-accent)]"
+    [checked]="quest.completed"
+    (change)="onToggleCompleted($event)"
+  />
+  <div>
+    <p class="font-medium" [class.line-through]="quest.completed" [class.text-[var(--color-text-muted)]]="quest.completed">
+      {{ quest.name }}
+    </p>
+    <a
+      [href]="wikiBaseUrl + quest.wikiUrl"
+      target="_blank"
+      rel="noopener"
+      class="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-accent)]"
+    >
+      Show on Wiki
+    </a>
+  </div>
+</div>
