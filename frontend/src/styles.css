@@ -4,7 +4,7 @@
    backend's wiki scrape (backend/src/features/scraper/wiki-parser.ts) — not
    visible to Tailwind's content scanner since they never appear as literal
    strings in frontend source files. */
-@source inline("text-red-400 text-green-400 hover:text-[var(--color-accent)]");
+@source inline("text-red-400 text-green-400 hover:text-[var(--color-accent)] list-disc list-inside space-y-0.5 pl-4 mt-0.5");
 
 @theme {
   --color-bg: #0f0f12;

@@ -69,14 +69,27 @@ describe("parseQuestsPage", () => {
     expect(shootingCans.objectives[0]).toContain('target="_blank"');
   });
 
-  it("renders 'in raid' in red and does not duplicate optional sub-objectives", () => {
+  it("renders 'in raid' in red", () => {
     const traders = parseQuestsPage(loadFixtureJson());
     const punisher3 = traders
       .flatMap((t) => t.quests)
       .find((q) => q.name === "The Punisher - Part 3")!;
     const inRaidObjective = punisher3.objectives.find((o) => o.includes("Lower half-mask"))!;
     expect(inRaidObjective).toContain('<span class="text-red-400">in raid</span>');
-    expect(inRaidObjective).not.toContain("<ul>");
+  });
+
+  it("nests optional sub-objectives as an indented sub-list instead of separate top-level entries", () => {
+    const traders = parseQuestsPage(loadFixtureJson());
+    const prapor = traders.find((t) => t.name === "Prapor")!;
+    const iceCreamCones = prapor.quests.find((q) => q.name === "Ice Cream Cones")!;
+
+    expect(iceCreamCones.objectives).toHaveLength(2);
+    const [findObjective, handOverObjective] = iceCreamCones.objectives;
+    expect(findObjective).toContain('<span class="text-red-400">in raid</span>');
+    expect(findObjective).toContain('<ul class="list-disc list-inside space-y-0.5 pl-4 mt-0.5">');
+    expect(findObjective).toContain("key to the bunker");
+    expect(findObjective).toContain("locked bunker");
+    expect(handOverObjective).toContain("Hand over");
   });
 
   it("does not link 'in raid' to the wiki's Found_in_raid glossary page", () => {

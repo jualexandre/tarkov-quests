@@ -8,15 +8,15 @@ const WIKI_BASE_URL = "https://escapefromtarkov.fandom.com";
 const UNLINKED_WIKI_PATHS = ["/wiki/Found_in_raid", "/wiki/EXP"];
 
 /**
- * Renders one <li> (objective or reward line) down to a safe HTML fragment:
- * wiki-relative links become absolute and open in a new tab, and the wiki's
- * <font color="red|green"> markup (used for "in raid" and +/- rep amounts)
- * becomes Tailwind classes instead. Nested <ul> are stripped because the
- * caller already flattens nested <li>s into their own top-level entries.
+ * Renders one top-level <li> (objective or reward line) down to a safe HTML
+ * fragment: wiki-relative links become absolute and open in a new tab, and
+ * the wiki's <font color="red|green"> markup (used for "in raid" and +/- rep
+ * amounts) becomes Tailwind classes instead. Nested <ul>/<ol> (e.g. optional
+ * sub-objectives) are kept as an indented sub-list rather than flattened.
  */
 function sanitizeListItem($: cheerio.CheerioAPI, li: any): string {
   const $li = $(li).clone();
-  $li.find("ul, ol").remove();
+  $li.find("ul, ol").attr("class", "list-disc list-inside space-y-0.5 pl-4 mt-0.5");
 
   $li.find('font[color="red"]').each((_, el) => {
     const $el = $(el);
@@ -53,9 +53,14 @@ function sanitizeListItem($: cheerio.CheerioAPI, li: any): string {
   return ($li.html() ?? "").trim();
 }
 
+// Only the top-level <li>s become their own entry; a nested <li> (one whose
+// parent <ul>/<ol> is itself inside another <li>) is rendered as part of its
+// parent's HTML instead, so it isn't picked up here too.
 function extractListItems($: cheerio.CheerioAPI, cell: cheerio.Cheerio<any>): string[] {
+  const cellEl = cell.get(0);
   return cell
     .find("li")
+    .filter((_, li) => $(li).parentsUntil(cellEl, "ul, ol").length <= 1)
     .map((_, li) => sanitizeListItem($, li))
     .get();
 }
