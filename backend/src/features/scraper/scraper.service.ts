@@ -1,5 +1,5 @@
 import type { TraderRepository } from "../traders/trader.types";
-import type { QuestRepository, RequiredItem } from "../quests/quest.types";
+import type { QuestRepository, RequiredItem, RequiredItemEntry } from "../quests/quest.types";
 import { parseQuestsPage, parseRequiredItems } from "./wiki-parser";
 import { mapWithConcurrency } from "./concurrency";
 import type { ScraperService, ScrapeSummary } from "./scraper.types";
@@ -92,7 +92,7 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
       }
 
       // Phase A: fetch and parse each quest's detail page. Icon URLs stay remote here.
-      const requiredItemsByWikiSlug = new Map<string, RequiredItem[]>();
+      const requiredItemsByWikiSlug = new Map<string, RequiredItemEntry[]>();
       let detailFetchFailures = 0;
       await mapWithConcurrency(questsToUpsert, DETAIL_FETCH_CONCURRENCY, async ({ parsedQuest }) => {
         try {
@@ -109,8 +109,11 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
 
       // Phase B: download every item icon under a single global concurrency bound.
       // `.flat()` keeps the same object references held by the per-quest arrays above,
-      // so mutating `iconUrl` in place updates what the upsert loop reads.
-      const allRequiredItems = [...requiredItemsByWikiSlug.values()].flat();
+      // so mutating `iconUrl` in place updates what the upsert loop reads. Divider
+      // entries (alternative-item separators) have no icon of their own and are skipped.
+      const allRequiredItems = [...requiredItemsByWikiSlug.values()]
+        .flat()
+        .filter((entry): entry is RequiredItem => entry.kind === "item");
       await mapWithConcurrency(allRequiredItems, ICON_DOWNLOAD_CONCURRENCY, async (item) => {
         item.iconUrl = await deps.downloadItemImage(
           item.iconUrl,

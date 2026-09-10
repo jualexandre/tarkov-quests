@@ -22,6 +22,7 @@ describe("QuestTableComponent", () => {
         rewards: ["+1200 EXP"],
         requiredItems: [
           {
+            kind: "item",
             name: "Secure Folder 0060",
             wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
             iconUrl: null,

@@ -53,6 +53,40 @@ function buildFakeDetailResponseWithItem(): string {
   });
 }
 
+function buildFakeDetailResponseWithAlternatives(): string {
+  return JSON.stringify({
+    parse: {
+      text: {
+        "*": `
+          <table class="wikitable">
+            <tbody>
+              <tr><th colspan="6">Related Quest Items</th></tr>
+              <tr><th>Icon</th><th>Item name</th><th>Amount</th><th>Requirement</th><th>Find in Raid</th><th>Notes</th></tr>
+              <tr>
+                <th><img data-src="https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/f/f1/Yellow_flare_icon.png" /></th>
+                <td><a href="/wiki/RSP-30">RSP-30 reactive signal cartridge (Yellow)</a></td>
+                <td>1</td>
+                <td>Required</td>
+                <th>N/A</th>
+                <td>Must be fired into the sky.</td>
+              </tr>
+              <tr><th colspan="6">OR</th></tr>
+              <tr>
+                <th><img data-src="https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/f/f7/SP-81_Icon.png" /></th>
+                <td><a href="/wiki/ZiD_SP-81">ZiD SP-81 26x75 signal pistol</a></td>
+                <td>1</td>
+                <td>Required</td>
+                <th>N/A</th>
+                <td>Used to fire the flare cartridge.</td>
+              </tr>
+            </tbody>
+          </table>
+        `,
+      },
+    },
+  });
+}
+
 describe("createScraperService", () => {
   it("upserts the trader and quest parsed from the page, then deactivates unseen quests", async () => {
     const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
@@ -171,6 +205,7 @@ describe("createScraperService", () => {
       expect.objectContaining({
         requiredItems: [
           {
+            kind: "item",
             name: "Secure Folder 0060",
             wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
             iconUrl: "/api/item-images/Secure_Folder_0060.png",
@@ -179,6 +214,59 @@ describe("createScraperService", () => {
             findInRaid: true,
             notes: "Quest item, transferred on pickup.",
           },
+        ],
+      })
+    );
+  });
+
+  it("keeps a divider entry between alternative items and never tries to download an icon for it", async () => {
+    const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
+    const upsertedQuest = {
+      id: 1,
+      traderId: 1,
+      name: "Debut",
+      wikiSlug: "Debut",
+      wikiUrl: "/wiki/Debut",
+      objectives: [],
+      rewards: [],
+      requiredItems: [],
+      completed: false,
+      active: true,
+      lastSeenAt: new Date(),
+    };
+
+    const traderRepository: TraderRepository = {
+      upsertByName: vi.fn().mockResolvedValue(upsertedTrader),
+      findAll: vi.fn(),
+    };
+    const questRepository: QuestRepository = {
+      upsertBySlug: vi.fn().mockResolvedValue(upsertedQuest),
+      updateCompleted: vi.fn(),
+      findAllActiveGroupedByTrader: vi.fn().mockResolvedValue([]),
+      deactivateNotIn: vi.fn().mockResolvedValue(0),
+    };
+    const fetchQuestsPageJson = vi.fn().mockResolvedValue(buildFakeApiResponse());
+    const fetchQuestDetailJson = vi.fn().mockResolvedValue(buildFakeDetailResponseWithAlternatives());
+    const downloadTraderImage = vi.fn().mockResolvedValue("/api/trader-images/prapor.png");
+    const downloadItemImage = vi.fn().mockResolvedValue("/api/item-images/item.png");
+
+    const service = createScraperService({
+      traderRepository,
+      questRepository,
+      fetchQuestsPageJson,
+      fetchQuestDetailJson,
+      downloadTraderImage,
+      downloadItemImage,
+    });
+    await service.runScrape();
+
+    expect(downloadItemImage).toHaveBeenCalledTimes(2);
+    expect(questRepository.upsertBySlug).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requiredItems: [
+          expect.objectContaining({ kind: "item", name: "RSP-30 reactive signal cartridge (Yellow)" }),
+          { kind: "divider", label: "OR" },
+          expect.objectContaining({ kind: "item", name: "ZiD SP-81 26x75 signal pistol" }),
         ],
       })
     );

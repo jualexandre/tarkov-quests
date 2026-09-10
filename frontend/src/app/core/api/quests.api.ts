@@ -3,14 +3,22 @@ import { HttpClient } from "@angular/common/http";
 import type { Observable } from "rxjs";
 
 export interface RequiredItemDto {
+  kind: "item";
   name: string;
   wikiUrl: string | null;
   iconUrl: string | null;
-  amount: number;
+  amount: number | null;
   requirement: string;
   findInRaid: boolean;
   notes: string;
 }
+
+export interface RequiredItemDividerDto {
+  kind: "divider";
+  label: string;
+}
+
+export type RequiredItemEntryDto = RequiredItemDto | RequiredItemDividerDto;
 
 export interface QuestDto {
   id: number;
@@ -20,7 +28,7 @@ export interface QuestDto {
   wikiUrl: string;
   objectives: string[];
   rewards: string[];
-  requiredItems: RequiredItemDto[];
+  requiredItems: RequiredItemEntryDto[];
   completed: boolean;
   active: boolean;
   lastSeenAt: string;

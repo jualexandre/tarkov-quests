@@ -7,6 +7,7 @@ describe("RequiredItemListComponent", () => {
 
   function buildItem(overrides: Partial<RequiredItemDto> = {}): RequiredItemDto {
     return {
+      kind: "item",
       name: "Secure Folder 0060",
       wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
       iconUrl: "/api/item-images/Secure_Folder_0060.png",
@@ -76,5 +77,19 @@ describe("RequiredItemListComponent", () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain("Item A");
     expect(el.textContent).toContain("Item B");
+  });
+
+  it("renders a divider entry's label without an icon or quantity", () => {
+    fixture.componentInstance.items = [
+      buildItem({ name: "RSP-30", iconUrl: null }),
+      { kind: "divider", label: "OR" },
+      buildItem({ name: "SP-81", iconUrl: null }),
+    ];
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("OR");
+    expect(el.textContent).toContain("RSP-30");
+    expect(el.textContent).toContain("SP-81");
+    expect(el.querySelectorAll("img")).toHaveLength(0);
   });
 });

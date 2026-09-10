@@ -1,17 +1,23 @@
 <div class="flex flex-col gap-1.5">
-  @for (item of items; track $index) {
-    <div class="flex items-center gap-1.5">
-      @if (item.iconUrl) {
-        <img [src]="item.iconUrl" [alt]="item.name" class="h-6 w-6 rounded object-cover shrink-0" />
-      }
-      <span class="truncate">{{ item.name }}</span>
-      <span class="text-[var(--color-text-muted)]">×{{ item.amount }}</span>
-      @if (isHandover(item)) {
-        <span class="text-[10px] uppercase rounded px-1 bg-[var(--color-accent)]/20 text-[var(--color-accent)]">Hand over</span>
-      }
-      @if (item.findInRaid) {
-        <span class="text-[10px] uppercase rounded px-1 bg-red-400/20 text-red-400">FIR</span>
-      }
-    </div>
+  @for (entry of items; track $index) {
+    @if (entry.kind === 'divider') {
+      <div class="text-[10px] uppercase tracking-wide text-[var(--color-text-muted)]">{{ entry.label }}</div>
+    } @else {
+      <div class="flex items-center gap-1.5">
+        @if (entry.iconUrl) {
+          <img [src]="entry.iconUrl" [alt]="entry.name" class="h-6 w-6 rounded object-cover shrink-0" />
+        }
+        <span class="truncate">{{ entry.name }}</span>
+        @if (entry.amount !== null) {
+          <span class="text-[var(--color-text-muted)]">×{{ entry.amount }}</span>
+        }
+        @if (isHandover(entry)) {
+          <span class="text-[10px] uppercase rounded px-1 bg-[var(--color-accent)]/20 text-[var(--color-accent)]">Hand over</span>
+        }
+        @if (entry.findInRaid) {
+          <span class="text-[10px] uppercase rounded px-1 bg-red-400/20 text-red-400">FIR</span>
+        }
+      </div>
+    }
   }
 </div>

@@ -1,6 +1,6 @@
 import { Component, Input } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import type { RequiredItemDto } from "../../core/api/quests.api";
+import type { RequiredItemDto, RequiredItemEntryDto } from "../../core/api/quests.api";
 
 @Component({
   selector: "app-required-item-list",
@@ -10,7 +10,7 @@ import type { RequiredItemDto } from "../../core/api/quests.api";
   host: { class: "contents" },
 })
 export class RequiredItemListComponent {
-  @Input({ required: true }) items!: RequiredItemDto[];
+  @Input({ required: true }) items!: RequiredItemEntryDto[];
 
   isHandover(item: RequiredItemDto): boolean {
     return item.requirement.toLowerCase().includes("handover");

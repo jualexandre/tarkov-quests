@@ -33,6 +33,7 @@ describe("PrismaQuestRepository", () => {
 
   it("stores and returns requiredItems through JSON encoding", async () => {
     const item: RequiredItem = {
+      kind: "item",
       name: "Secure Folder 0060",
       wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
       iconUrl: "/api/item-images/Secure_Folder_0060.png",
