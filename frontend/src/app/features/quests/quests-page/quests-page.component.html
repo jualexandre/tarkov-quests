@@ -22,9 +22,13 @@
     </p>
   }
 
-  <div class="flex flex-wrap gap-4">
-    @for (trader of traders$ | async; track trader.id) {
-      <app-trader-column [trader]="trader" (questToggled)="onQuestToggled($event)"></app-trader-column>
-    }
-  </div>
+  <app-trader-tabs
+    [traders]="traders()"
+    [selectedTraderId]="selectedTrader()?.id ?? null"
+    (traderSelected)="onTraderSelected($event)"
+  ></app-trader-tabs>
+
+  @if (selectedTrader(); as trader) {
+    <app-quest-table [trader]="trader" (questToggled)="onQuestToggled($event)"></app-quest-table>
+  }
 </div>

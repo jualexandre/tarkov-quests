@@ -11,7 +11,7 @@ describe("QuestsState", () => {
   let store: Store;
   let questsApi: { getTraders: Mock; updateQuestCompleted: Mock; runScrape: Mock };
 
-  const trader: TraderDto = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0, quests: [] };
+  const trader: TraderDto = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0, imageUrl: null, quests: [] };
   const quest: QuestDto = {
     id: 1,
     traderId: 1,

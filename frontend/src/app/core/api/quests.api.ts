@@ -20,6 +20,7 @@ export interface TraderDto {
   name: string;
   slug: string;
   tabOrder: number;
+  imageUrl: string | null;
   quests: QuestDto[];
 }
 

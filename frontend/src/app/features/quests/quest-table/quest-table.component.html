@@ -1,0 +1,76 @@
+<div class="rounded-lg bg-[var(--color-bg)]">
+  <h2 class="text-lg font-semibold mb-3 text-[var(--color-accent)]">{{ trader.name }}</h2>
+  <table class="w-full text-sm border-collapse">
+    <thead>
+      <tr class="text-left text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
+        <th class="py-2 pr-2 w-8"></th>
+        <th class="py-2 pr-2">Quest</th>
+        <th class="py-2 w-28"></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (quest of trader.quests; track quest.id) {
+        <tr class="border-b border-[var(--color-border)]">
+          <td class="py-2 pr-2 align-top">
+            <input
+              type="checkbox"
+              class="h-4 w-4 accent-[var(--color-accent)]"
+              [checked]="quest.completed"
+              (change)="onToggleCompleted(quest.id, $event)"
+            />
+          </td>
+          <td class="py-2 pr-2">
+            <a
+              [href]="wikiBaseUrl + quest.wikiUrl"
+              target="_blank"
+              rel="noopener"
+              class="font-medium"
+              [class.line-through]="quest.completed"
+              [class.text-[var(--color-text-muted)]]="quest.completed"
+            >
+              {{ quest.name }}
+            </a>
+          </td>
+          <td class="py-2 text-right">
+            <button
+              type="button"
+              class="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-accent)]"
+              (click)="toggleExpanded(quest.id)"
+            >
+              {{ isExpanded(quest.id) ? "Hide details" : "Show details" }}
+            </button>
+          </td>
+        </tr>
+        @if (isExpanded(quest.id)) {
+          <tr class="border-b border-[var(--color-border)]">
+            <td></td>
+            <td colspan="2" class="pb-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-[var(--color-text-muted)]">
+                <div>
+                  <p class="font-semibold text-[var(--color-text)] mb-1">Objectives</p>
+                  <ul class="list-disc list-inside space-y-0.5">
+                    @for (objective of quest.objectives; track $index) {
+                      <li>{{ objective }}</li>
+                    }
+                  </ul>
+                </div>
+                <div>
+                  <p class="font-semibold text-[var(--color-text)] mb-1">Rewards</p>
+                  <ul class="list-disc list-inside space-y-0.5">
+                    @for (reward of quest.rewards; track $index) {
+                      <li>{{ reward }}</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            </td>
+          </tr>
+        }
+      } @empty {
+        <tr>
+          <td colspan="3" class="py-3 text-sm text-[var(--color-text-muted)]">No active quests.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
