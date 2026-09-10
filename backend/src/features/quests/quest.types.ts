@@ -24,6 +24,18 @@ export interface RequiredItemDivider {
 
 export type RequiredItemEntry = RequiredItem | RequiredItemDivider;
 
+export interface QuestRequirements {
+  minLevel: number | null;
+  prerequisiteQuestSlugs: string[];
+  loyaltyNotes: string[];
+}
+
+export const EMPTY_QUEST_REQUIREMENTS: QuestRequirements = {
+  minLevel: null,
+  prerequisiteQuestSlugs: [],
+  loyaltyNotes: [],
+};
+
 export interface Quest {
   id: number;
   traderId: number;
@@ -33,6 +45,7 @@ export interface Quest {
   objectives: string[];
   rewards: string[];
   requiredItems: RequiredItemEntry[];
+  requirements: QuestRequirements;
   completed: boolean;
   active: boolean;
   lastSeenAt: Date;
@@ -50,6 +63,7 @@ export interface UpsertQuestInput {
   objectives: string[];
   rewards: string[];
   requiredItems: RequiredItemEntry[];
+  requirements: QuestRequirements;
 }
 
 export interface QuestRepository {

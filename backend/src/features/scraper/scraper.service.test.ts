@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { createScraperService } from "./scraper.service";
 import type { TraderRepository } from "../traders/trader.types";
 import type { QuestRepository } from "../quests/quest.types";
+import { EMPTY_QUEST_REQUIREMENTS } from "../quests/quest.types";
 
 function buildFakeApiResponse() {
   return JSON.stringify({
@@ -99,6 +100,7 @@ describe("createScraperService", () => {
       objectives: ["Eliminate 5 Scavs"],
       rewards: ["+1200 EXP"],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
       completed: false,
       active: true,
       lastSeenAt: new Date(),
@@ -145,6 +147,7 @@ describe("createScraperService", () => {
       objectives: ["Eliminate 5 Scavs"],
       rewards: ["+1200 EXP"],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
     expect(questRepository.deactivateNotIn).toHaveBeenCalledWith(["Debut"]);
     expect(summary).toEqual({
@@ -167,6 +170,7 @@ describe("createScraperService", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
       completed: false,
       active: true,
       lastSeenAt: new Date(),
@@ -230,6 +234,7 @@ describe("createScraperService", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
       completed: false,
       active: true,
       lastSeenAt: new Date(),
@@ -283,6 +288,7 @@ describe("createScraperService", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
       completed: false,
       active: true,
       lastSeenAt: new Date(),

@@ -15,6 +15,7 @@ function toQuest(row: {
   objectives: string;
   rewards: string;
   requiredItems: string;
+  requirements: string;
   completed: boolean;
   active: boolean;
   lastSeenAt: Date;
@@ -24,6 +25,7 @@ function toQuest(row: {
     objectives: JSON.parse(row.objectives),
     rewards: JSON.parse(row.rewards),
     requiredItems: JSON.parse(row.requiredItems),
+    requirements: JSON.parse(row.requirements),
   };
 }
 
@@ -38,6 +40,7 @@ export class PrismaQuestRepository implements QuestRepository {
       objectives: JSON.stringify(input.objectives),
       rewards: JSON.stringify(input.rewards),
       requiredItems: JSON.stringify(input.requiredItems),
+      requirements: JSON.stringify(input.requirements),
       active: true,
       lastSeenAt: new Date(),
     };

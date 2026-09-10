@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { getPrismaClient } from "../../shared/prisma-client";
 import { PrismaTraderRepository } from "../traders/trader.repository";
 import { PrismaQuestRepository } from "./quest.repository";
-import type { RequiredItem } from "./quest.types";
+import type { RequiredItem, QuestRequirements } from "./quest.types";
+import { EMPTY_QUEST_REQUIREMENTS } from "./quest.types";
 
 describe("PrismaQuestRepository", () => {
   const prisma = getPrismaClient();
@@ -24,6 +25,7 @@ describe("PrismaQuestRepository", () => {
       objectives: ["Locate the Utyos machine gun"],
       rewards: ["+1,600 EXP"],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
     expect(quest.completed).toBe(false);
     expect(quest.active).toBe(true);
@@ -50,8 +52,28 @@ describe("PrismaQuestRepository", () => {
       objectives: [],
       rewards: [],
       requiredItems: [item],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
     expect(quest.requiredItems).toEqual([item]);
+  });
+
+  it("stores and returns requirements through JSON encoding", async () => {
+    const requirements: QuestRequirements = {
+      minLevel: 30,
+      prerequisiteQuestSlugs: ["The_Punisher_-_Part_2"],
+      loyaltyNotes: ["Must reach Loyalty Level 2 with Prapor to obtain this quest."],
+    };
+    const quest = await repo.upsertBySlug({
+      traderId,
+      name: "The Punisher - Part 3",
+      wikiSlug: "The_Punisher_-_Part_3",
+      wikiUrl: "/wiki/The_Punisher_-_Part_3",
+      objectives: [],
+      rewards: [],
+      requiredItems: [],
+      requirements,
+    });
+    expect(quest.requirements).toEqual(requirements);
   });
 
   it("preserves completed=true across a second upsert of the same wikiSlug", async () => {
@@ -63,6 +85,7 @@ describe("PrismaQuestRepository", () => {
       objectives: ["a"],
       rewards: ["b"],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
     await repo.updateCompleted(first.id, true);
 
@@ -74,6 +97,7 @@ describe("PrismaQuestRepository", () => {
       objectives: ["a", "c"],
       rewards: ["b"],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
 
     expect(second.id).toBe(first.id);
@@ -98,6 +122,7 @@ describe("PrismaQuestRepository", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
     const inactiveQuest = await repo.upsertBySlug({
       traderId: therapist.id,
@@ -107,6 +132,7 @@ describe("PrismaQuestRepository", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
     await repo.deactivateNotIn(["Debut"]);
 
@@ -126,6 +152,7 @@ describe("PrismaQuestRepository", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
     await repo.upsertBySlug({
       traderId,
@@ -135,6 +162,7 @@ describe("PrismaQuestRepository", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
     });
 
     const deactivatedCount = await repo.deactivateNotIn(["Debut"]);

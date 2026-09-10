@@ -1,5 +1,6 @@
 import type { TraderRepository } from "../traders/trader.types";
-import type { QuestRepository, RequiredItem, RequiredItemEntry } from "../quests/quest.types";
+import type { QuestRepository, RequiredItem, RequiredItemEntry, QuestRequirements } from "../quests/quest.types";
+import { EMPTY_QUEST_REQUIREMENTS } from "../quests/quest.types";
 import { parseQuestsPage, parseRequiredItems } from "./wiki-parser";
 import { mapWithConcurrency } from "./concurrency";
 import type { ScraperService, ScrapeSummary } from "./scraper.types";
@@ -139,6 +140,7 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
           objectives: parsedQuest.objectives,
           rewards: parsedQuest.rewards,
           requiredItems: requiredItemsByWikiSlug.get(parsedQuest.wikiSlug) ?? [],
+          requirements: EMPTY_QUEST_REQUIREMENTS,
         });
         seenSlugs.push(quest.wikiSlug);
         if (existingSlugs.has(parsedQuest.wikiSlug)) updated += 1;

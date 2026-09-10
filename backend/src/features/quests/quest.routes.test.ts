@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { createApp } from "../../shared/http/app";
 import type { QuestRepository } from "./quest.types";
+import { EMPTY_QUEST_REQUIREMENTS } from "./quest.types";
 import type { ScraperService } from "../scraper/scraper.types";
 
 describe("PATCH /api/quests/:id", () => {
@@ -15,6 +16,7 @@ describe("PATCH /api/quests/:id", () => {
       objectives: [],
       rewards: [],
       requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
       completed: true,
       active: true,
       lastSeenAt: new Date(),

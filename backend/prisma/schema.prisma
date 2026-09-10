@@ -25,6 +25,7 @@ model Quest {
   objectives    String
   rewards       String
   requiredItems String   @default("[]")
+  requirements  String   @default("{\"minLevel\":null,\"prerequisiteQuestSlugs\":[],\"loyaltyNotes\":[]}")
   completed     Boolean  @default(false)
   active        Boolean  @default(true)
   lastSeenAt    DateTime
