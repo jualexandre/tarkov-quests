@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { ParsedQuest, ParsedTrader } from "./scraper.types";
+import type { RequiredItem } from "../quests/quest.types";
 
 const WIKI_BASE_URL = "https://escapefromtarkov.fandom.com";
 
@@ -7,50 +8,52 @@ const WIKI_BASE_URL = "https://escapefromtarkov.fandom.com";
 // ("in raid" → Found in raid, EXP → EXP) — keep the text, drop the link.
 const UNLINKED_WIKI_PATHS = ["/wiki/Found_in_raid", "/wiki/EXP"];
 
+const RELATED_ITEMS_CAPTION = "Related Quest Items";
+
 /**
- * Renders one top-level <li> (objective or reward line) down to a safe HTML
- * fragment: wiki-relative links become absolute and open in a new tab, and
- * the wiki's <font color="red|green"> markup (used for "in raid" and +/- rep
- * amounts) becomes Tailwind classes instead. Nested <ul>/<ol> (e.g. optional
+ * Renders one HTML element down to a safe HTML fragment: wiki-relative links
+ * become absolute and open in a new tab, and the wiki's <font color="red|green">
+ * markup (used for "in raid", +/- rep amounts, and a "Yes" find-in-raid cell)
+ * becomes Tailwind classes instead. Nested <ul>/<ol> (e.g. optional
  * sub-objectives) are kept as an indented sub-list rather than flattened.
  */
-function sanitizeListItem($: cheerio.CheerioAPI, li: any): string {
-  const $li = $(li).clone();
-  $li.find("ul, ol").attr("class", "list-disc list-inside space-y-0.5 pl-4 mt-0.5");
+function sanitizeHtmlFragment($: cheerio.CheerioAPI, el: any): string {
+  const $el = $(el).clone();
+  $el.find("ul, ol").attr("class", "list-disc list-inside space-y-0.5 pl-4 mt-0.5");
 
-  $li.find('font[color="red"]').each((_, el) => {
-    const $el = $(el);
-    $el.replaceWith(`<span class="text-red-400">${$el.html() ?? ""}</span>`);
+  $el.find('font[color="red"]').each((_, e) => {
+    const $e = $(e);
+    $e.replaceWith(`<span class="text-red-400">${$e.html() ?? ""}</span>`);
   });
-  $li.find('font[color="green"]').each((_, el) => {
-    const $el = $(el);
-    $el.replaceWith(`<span class="text-green-400">${$el.html() ?? ""}</span>`);
+  $el.find('font[color="green"]').each((_, e) => {
+    const $e = $(e);
+    $e.replaceWith(`<span class="text-green-400">${$e.html() ?? ""}</span>`);
   });
-  $li.find("font").each((_, el) => {
-    const $el = $(el);
-    $el.replaceWith($el.html() ?? "");
+  $el.find("font").each((_, e) => {
+    const $e = $(e);
+    $e.replaceWith($e.html() ?? "");
   });
 
-  $li
+  $el
     .find("a")
-    .filter((_, el) => UNLINKED_WIKI_PATHS.includes($(el).attr("href") ?? ""))
-    .each((_, el) => {
-      const $el = $(el);
-      $el.replaceWith($el.html() ?? "");
+    .filter((_, e) => UNLINKED_WIKI_PATHS.includes($(e).attr("href") ?? ""))
+    .each((_, e) => {
+      const $e = $(e);
+      $e.replaceWith($e.html() ?? "");
     });
 
-  $li.find("a").each((_, el) => {
-    const $el = $(el);
-    const href = $el.attr("href") ?? "";
+  $el.find("a").each((_, e) => {
+    const $e = $(e);
+    const href = $e.attr("href") ?? "";
     if (href.startsWith("/")) {
-      $el.attr("href", `${WIKI_BASE_URL}${href}`);
+      $e.attr("href", `${WIKI_BASE_URL}${href}`);
     }
-    $el.attr("target", "_blank");
-    $el.attr("rel", "noopener");
-    $el.attr("class", "hover:text-[var(--color-accent)]");
+    $e.attr("target", "_blank");
+    $e.attr("rel", "noopener");
+    $e.attr("class", "hover:text-[var(--color-accent)]");
   });
 
-  return ($li.html() ?? "").trim();
+  return ($el.html() ?? "").trim();
 }
 
 // Only the top-level <li>s become their own entry; a nested <li> (one whose
@@ -61,7 +64,7 @@ function extractListItems($: cheerio.CheerioAPI, cell: cheerio.Cheerio<any>): st
   return cell
     .find("li")
     .filter((_, li) => $(li).parentsUntil(cellEl, "ul, ol").length <= 1)
-    .map((_, li) => sanitizeListItem($, li))
+    .map((_, li) => sanitizeHtmlFragment($, li))
     .get();
 }
 
@@ -116,5 +119,56 @@ export function parseQuestsPage(apiResponseJson: string): ParsedTrader[] {
     }
 
     return { name, tabOrder, imageUrl, quests };
+  });
+}
+
+function extractIconUrl($: cheerio.CheerioAPI, cell: cheerio.Cheerio<any>): string | null {
+  const img = cell.find("img").first();
+  if (img.length === 0) return null;
+  return img.attr("data-src") ?? img.attr("src") ?? null;
+}
+
+function extractItemLink(
+  $: cheerio.CheerioAPI,
+  cell: cheerio.Cheerio<any>
+): { name: string; wikiUrl: string | null } {
+  const link = cell.find("a").first();
+  if (link.length === 0) {
+    return { name: cell.text().trim(), wikiUrl: null };
+  }
+  const href = link.attr("href") ?? "";
+  const wikiUrl = href.startsWith("/") ? `${WIKI_BASE_URL}${href}` : href || null;
+  return { name: link.text().trim(), wikiUrl };
+}
+
+/**
+ * Parses the "Related Quest Items" table from a quest's detail page, if
+ * present. A quest with no required items simply has no such table on its
+ * page, so an absent table means an empty result, not an error. The table's
+ * first two rows are always a single-cell caption and a column-header row
+ * (a shared wiki template), so data rows start at index 2.
+ */
+export function parseRequiredItems(apiResponseJson: string): RequiredItem[] {
+  const parsed = JSON.parse(apiResponseJson);
+  const html: string = parsed.parse.text["*"];
+  const $ = cheerio.load(html);
+
+  const table = $("table.wikitable")
+    .filter((_, t) => $(t).find("tr").first().text().trim().includes(RELATED_ITEMS_CAPTION))
+    .first();
+
+  if (table.length === 0) return [];
+
+  const rows = table.find("tbody > tr").toArray();
+  return rows.slice(2).map((row) => {
+    const cells = $(row).children("td, th");
+    const iconUrl = extractIconUrl($, cells.eq(0));
+    const { name, wikiUrl } = extractItemLink($, cells.eq(1));
+    const amount = parseInt(cells.eq(2).text().trim(), 10) || 0;
+    const requirement = cells.eq(3).text().trim();
+    const findInRaid = cells.eq(4).text().trim().toLowerCase() === "yes";
+    const notes = sanitizeHtmlFragment($, cells.eq(5).get(0));
+
+    return { name, wikiUrl, iconUrl, amount, requirement, findInRaid, notes };
   });
 }

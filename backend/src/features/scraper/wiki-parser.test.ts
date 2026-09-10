@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseQuestsPage } from "./wiki-parser";
+import { parseQuestsPage, parseRequiredItems } from "./wiki-parser";
 
 function loadFixtureJson(): string {
   return readFileSync(
@@ -118,5 +118,51 @@ describe("parseQuestsPage", () => {
     const expReward = shootingCans.rewards.find((r) => r.includes("EXP"))!;
     expect(expReward).not.toContain("<a");
     expect(expReward).toContain("EXP");
+  });
+});
+
+describe("parseRequiredItems", () => {
+  function loadDetailFixtureJson(filename: string): string {
+    return readFileSync(join(__dirname, "../../../test/fixtures", filename), "utf-8");
+  }
+
+  it("returns an empty array when the quest page has no Related Quest Items table", () => {
+    const items = parseRequiredItems(loadDetailFixtureJson("quest-detail-without-items.json"));
+    expect(items).toEqual([]);
+  });
+
+  it("parses a 'find and keep' item with no find-in-raid requirement", () => {
+    const items = parseRequiredItems(loadDetailFixtureJson("quest-detail-with-items.json"));
+    const key = items.find((i) => i.name === "Health Resort west wing room 306 key")!;
+    expect(key).toBeDefined();
+    expect(key.wikiUrl).toBe("https://escapefromtarkov.fandom.com/wiki/Health_Resort_west_wing_room_306_key");
+    expect(key.iconUrl).toBe(
+      "https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/7/71/WestWing306KeyIcon.png/revision/latest?cb=20220707215218"
+    );
+    expect(key.amount).toBe(1);
+    expect(key.requirement).toBe("Required");
+    expect(key.findInRaid).toBe(false);
+    expect(key.notes).toContain("Unlocks Health Resort west wing room 306");
+  });
+
+  it("parses a hand-over item that requires find-in-raid", () => {
+    const items = parseRequiredItems(loadDetailFixtureJson("quest-detail-with-items.json"));
+    const folder = items.find((i) => i.name === "Secure Folder 0060")!;
+    expect(folder).toBeDefined();
+    expect(folder.wikiUrl).toBe("https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060");
+    expect(folder.iconUrl).toBe(
+      "https://static.wikia.nocookie.net/escapefromtarkov_gamepedia/images/d/d0/Docs_0060_icon.png/revision/latest?cb=20221012071107"
+    );
+    expect(folder.amount).toBe(1);
+    expect(folder.requirement).toBe("Handover item");
+    expect(folder.findInRaid).toBe(true);
+    expect(folder.notes).toContain("quest item");
+  });
+
+  it("keeps links inside notes absolute and opening in a new tab", () => {
+    const items = parseRequiredItems(loadDetailFixtureJson("quest-detail-with-items.json"));
+    const key = items.find((i) => i.name === "Health Resort west wing room 306 key")!;
+    expect(key.notes).toContain('<a href="https://escapefromtarkov.fandom.com/wiki/Shoreline"');
+    expect(key.notes).toContain('target="_blank"');
   });
 });
