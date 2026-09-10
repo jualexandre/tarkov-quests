@@ -34,12 +34,27 @@ describe("QuestTableComponent", () => {
     fixture.detectChanges();
   });
 
-  it("renders the trader name heading and a table row with a wiki link per quest", () => {
+  it("renders a Quest / Objectives / Rewards header and the trader name heading", () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector("h2")?.textContent).toContain("Prapor");
-    const link = el.querySelector("table a") as HTMLAnchorElement;
-    expect(link.textContent).toContain("Debut");
+    const headers = Array.from(el.querySelectorAll("thead th")).map((th) => th.textContent?.trim());
+    expect(headers).toEqual(["Quest", "Objectives", "Rewards"]);
+  });
+
+  it("renders the quest name as plain text alongside a 'Show on Wiki' link to the quest's wiki page", () => {
+    const el: HTMLElement = fixture.nativeElement;
+    const row = el.querySelector("tbody tr") as HTMLElement;
+    expect(row.textContent).toContain("Debut");
+
+    const link = row.querySelector("a") as HTMLAnchorElement;
+    expect(link.textContent).toContain("Show on Wiki");
     expect(link.href).toContain("/wiki/Debut");
+  });
+
+  it("always shows objectives and rewards without needing to expand anything", () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("Eliminate 5 Scavs");
+    expect(el.textContent).toContain("+1200 EXP");
   });
 
   it("shows a placeholder row when the trader has no active quests", () => {
@@ -59,20 +74,5 @@ describe("QuestTableComponent", () => {
     checkbox.dispatchEvent(new Event("change"));
 
     expect(emitted).toEqual([{ id: 1, completed: true }]);
-  });
-
-  it("toggles objectives/rewards detail visibility when the detail button is clicked", () => {
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.textContent).not.toContain("Eliminate 5 Scavs");
-
-    const detailButton = el.querySelector("button") as HTMLButtonElement;
-    detailButton.click();
-    fixture.detectChanges();
-    expect(el.textContent).toContain("Eliminate 5 Scavs");
-    expect(el.textContent).toContain("+1200 EXP");
-
-    detailButton.click();
-    fixture.detectChanges();
-    expect(el.textContent).not.toContain("Eliminate 5 Scavs");
   });
 });

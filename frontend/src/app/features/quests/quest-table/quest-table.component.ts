@@ -13,19 +13,6 @@ export class QuestTableComponent {
   @Output() questToggled = new EventEmitter<{ id: number; completed: boolean }>();
 
   wikiBaseUrl = "https://escapefromtarkov.fandom.com";
-  private readonly expandedIds = new Set<number>();
-
-  isExpanded(id: number): boolean {
-    return this.expandedIds.has(id);
-  }
-
-  toggleExpanded(id: number): void {
-    if (this.expandedIds.has(id)) {
-      this.expandedIds.delete(id);
-    } else {
-      this.expandedIds.add(id);
-    }
-  }
 
   onToggleCompleted(id: number, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
