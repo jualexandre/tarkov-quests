@@ -1,13 +1,22 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { QuestCellComponent } from "./quest-cell.component";
+import type { QuestCompletionInfo } from "../../core/quest-lock";
 
 describe("QuestCellComponent", () => {
   let fixture: ComponentFixture<QuestCellComponent>;
 
+  const noRequirements = { minLevel: null, prerequisiteQuestSlugs: [], loyaltyNotes: [] };
+
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [QuestCellComponent] });
     fixture = TestBed.createComponent(QuestCellComponent);
-    fixture.componentInstance.quest = { id: 1, name: "Debut", completed: false, wikiUrl: "/wiki/Debut" };
+    fixture.componentInstance.quest = {
+      id: 1,
+      name: "Debut",
+      completed: false,
+      wikiUrl: "/wiki/Debut",
+      requirements: noRequirements,
+    };
     fixture.detectChanges();
   });
 
@@ -21,7 +30,13 @@ describe("QuestCellComponent", () => {
   });
 
   it("shows the name struck through when completed", () => {
-    fixture.componentRef.setInput("quest", { id: 1, name: "Debut", completed: true, wikiUrl: "/wiki/Debut" });
+    fixture.componentRef.setInput("quest", {
+      id: 1,
+      name: "Debut",
+      completed: true,
+      wikiUrl: "/wiki/Debut",
+      requirements: noRequirements,
+    });
     fixture.detectChanges();
     const name = (fixture.nativeElement as HTMLElement).querySelector("p") as HTMLElement;
     expect(name.className).toContain("line-through");
@@ -36,5 +51,98 @@ describe("QuestCellComponent", () => {
     checkbox.dispatchEvent(new Event("change"));
 
     expect(emitted).toEqual([{ id: 1, completed: true }]);
+  });
+
+  it("does not show a lock icon when there are no requirements", () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).not.toContain("🔒");
+  });
+
+  it("shows a lock icon and dims the name when the player's level is below the required level", () => {
+    fixture.componentRef.setInput("quest", {
+      id: 1,
+      name: "Fertilizers",
+      completed: false,
+      wikiUrl: "/wiki/Fertilizers",
+      requirements: { minLevel: 30, prerequisiteQuestSlugs: [], loyaltyNotes: [] },
+    });
+    fixture.componentRef.setInput("playerLevel", 20);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("🔒");
+    const name = el.querySelector("p") as HTMLElement;
+    expect(name.className).toContain("opacity-60");
+  });
+
+  it("does not lock by level when the player level has not been entered", () => {
+    fixture.componentRef.setInput("quest", {
+      id: 1,
+      name: "Fertilizers",
+      completed: false,
+      wikiUrl: "/wiki/Fertilizers",
+      requirements: { minLevel: 30, prerequisiteQuestSlugs: [], loyaltyNotes: [] },
+    });
+    fixture.componentRef.setInput("playerLevel", null);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).not.toContain("🔒");
+  });
+
+  it("shows a lock icon when a prerequisite quest is known and not completed", () => {
+    fixture.componentRef.setInput("quest", {
+      id: 3,
+      name: "The Punisher - Part 3",
+      completed: false,
+      wikiUrl: "/wiki/The_Punisher_-_Part_3",
+      requirements: { minLevel: null, prerequisiteQuestSlugs: ["The_Punisher_-_Part_2"], loyaltyNotes: [] },
+    });
+    const completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map([
+      ["The_Punisher_-_Part_2", { name: "The Punisher - Part 2", completed: false }],
+    ]);
+    fixture.componentRef.setInput("completionBySlug", completionBySlug);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("🔒");
+    expect(el.textContent).toContain("The Punisher - Part 2");
+  });
+
+  it("does not lock when the known prerequisite quest is completed", () => {
+    fixture.componentRef.setInput("quest", {
+      id: 3,
+      name: "The Punisher - Part 3",
+      completed: false,
+      wikiUrl: "/wiki/The_Punisher_-_Part_3",
+      requirements: { minLevel: null, prerequisiteQuestSlugs: ["The_Punisher_-_Part_2"], loyaltyNotes: [] },
+    });
+    const completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map([
+      ["The_Punisher_-_Part_2", { name: "The Punisher - Part 2", completed: true }],
+    ]);
+    fixture.componentRef.setInput("completionBySlug", completionBySlug);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).not.toContain("🔒");
+  });
+
+  it("renders loyalty notes as plain informational text without locking the quest", () => {
+    fixture.componentRef.setInput("quest", {
+      id: 4,
+      name: "Setup",
+      completed: false,
+      wikiUrl: "/wiki/Setup",
+      requirements: {
+        minLevel: null,
+        prerequisiteQuestSlugs: [],
+        loyaltyNotes: ["Must reach Loyalty Level 2 with Skier to obtain this quest."],
+      },
+    });
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("Must reach Loyalty Level 2 with Skier");
+    expect(el.textContent).not.toContain("🔒");
   });
 });

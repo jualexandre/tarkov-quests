@@ -6,8 +6,16 @@
     (change)="onToggleCompleted($event)"
   />
   <div>
-    <p class="font-medium" [class.line-through]="quest.completed" [class.text-[var(--color-text-muted)]]="quest.completed">
+    <p
+      class="font-medium"
+      [class.line-through]="quest.completed"
+      [class.text-[var(--color-text-muted)]]="quest.completed"
+      [class.opacity-60]="isLocked"
+    >
       {{ quest.name }}
+      @if (isLocked) {
+        <span [title]="lockTooltip">🔒</span>
+      }
     </p>
     <a
       [href]="wikiBaseUrl + quest.wikiUrl"
@@ -17,5 +25,11 @@
     >
       Show on Wiki
     </a>
+    <app-quest-requirements
+      [minLevel]="quest.requirements.minLevel"
+      [levelMet]="requirementsStatus.levelMet"
+      [prerequisites]="requirementsStatus.prerequisites"
+      [loyaltyNotes]="quest.requirements.loyaltyNotes"
+    ></app-quest-requirements>
   </div>
 </div>
