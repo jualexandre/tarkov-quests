@@ -1,7 +1,7 @@
 import type { TraderRepository } from "../traders/trader.types";
 import type { QuestRepository, RequiredItem, RequiredItemEntry, QuestRequirements } from "../quests/quest.types";
 import { EMPTY_QUEST_REQUIREMENTS } from "../quests/quest.types";
-import { parseQuestsPage, parseRequiredItems } from "./wiki-parser";
+import { parseQuestsPage, parseRequiredItems, parseRequirements } from "./wiki-parser";
 import { mapWithConcurrency } from "./concurrency";
 import type { ScraperService, ScrapeSummary } from "./scraper.types";
 
@@ -94,17 +94,20 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
 
       // Phase A: fetch and parse each quest's detail page. Icon URLs stay remote here.
       const requiredItemsByWikiSlug = new Map<string, RequiredItemEntry[]>();
+      const requirementsByWikiSlug = new Map<string, QuestRequirements>();
       let detailFetchFailures = 0;
       await mapWithConcurrency(questsToUpsert, DETAIL_FETCH_CONCURRENCY, async ({ parsedQuest }) => {
         try {
           const detailJson = await deps.fetchQuestDetailJson(parsedQuest.wikiSlug);
           requiredItemsByWikiSlug.set(parsedQuest.wikiSlug, parseRequiredItems(detailJson));
+          requirementsByWikiSlug.set(parsedQuest.wikiSlug, parseRequirements(detailJson));
         } catch (err) {
           detailFetchFailures += 1;
           console.warn(
             `Failed to fetch required items for "${parsedQuest.wikiSlug}": ${(err as Error).message}`
           );
           requiredItemsByWikiSlug.set(parsedQuest.wikiSlug, []);
+          requirementsByWikiSlug.set(parsedQuest.wikiSlug, EMPTY_QUEST_REQUIREMENTS);
         }
       });
 
@@ -140,7 +143,7 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
           objectives: parsedQuest.objectives,
           rewards: parsedQuest.rewards,
           requiredItems: requiredItemsByWikiSlug.get(parsedQuest.wikiSlug) ?? [],
-          requirements: EMPTY_QUEST_REQUIREMENTS,
+          requirements: requirementsByWikiSlug.get(parsedQuest.wikiSlug) ?? EMPTY_QUEST_REQUIREMENTS,
         });
         seenSlugs.push(quest.wikiSlug);
         if (existingSlugs.has(parsedQuest.wikiSlug)) updated += 1;

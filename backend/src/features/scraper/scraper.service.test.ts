@@ -88,6 +88,26 @@ function buildFakeDetailResponseWithAlternatives(): string {
   });
 }
 
+function buildFakeDetailResponseWithRequirements(): string {
+  return JSON.stringify({
+    parse: {
+      text: {
+        "*": `
+          <h2><span class="mw-headline" id="Requirements">Requirements</span></h2>
+          <ul><li>Must be level 30 to start this quest.</li></ul>
+          <table class="va-infobox-group"><tbody>
+            <tr><th class="va-infobox-header" colspan="3">Related quests</th></tr>
+            <tr>
+              <td class="va-infobox-content">Previous:<br /><a href="/wiki/Debut">Debut</a></td>
+              <td class="va-infobox-content">Leads to:<br />-</td>
+            </tr>
+          </tbody></table>
+        `,
+      },
+    },
+  });
+}
+
 describe("createScraperService", () => {
   it("upserts the trader and quest parsed from the page, then deactivates unseen quests", async () => {
     const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
@@ -223,6 +243,55 @@ describe("createScraperService", () => {
     );
   });
 
+  it("parses and includes a quest's level and prerequisite requirements from its detail page", async () => {
+    const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
+    const upsertedQuest = {
+      id: 1,
+      traderId: 1,
+      name: "Debut",
+      wikiSlug: "Debut",
+      wikiUrl: "/wiki/Debut",
+      objectives: [],
+      rewards: [],
+      requiredItems: [],
+      requirements: EMPTY_QUEST_REQUIREMENTS,
+      completed: false,
+      active: true,
+      lastSeenAt: new Date(),
+    };
+
+    const traderRepository: TraderRepository = {
+      upsertByName: vi.fn().mockResolvedValue(upsertedTrader),
+      findAll: vi.fn(),
+    };
+    const questRepository: QuestRepository = {
+      upsertBySlug: vi.fn().mockResolvedValue(upsertedQuest),
+      updateCompleted: vi.fn(),
+      findAllActiveGroupedByTrader: vi.fn().mockResolvedValue([]),
+      deactivateNotIn: vi.fn().mockResolvedValue(0),
+    };
+    const fetchQuestsPageJson = vi.fn().mockResolvedValue(buildFakeApiResponse());
+    const fetchQuestDetailJson = vi.fn().mockResolvedValue(buildFakeDetailResponseWithRequirements());
+    const downloadTraderImage = vi.fn().mockResolvedValue("/api/trader-images/prapor.png");
+    const downloadItemImage = vi.fn().mockResolvedValue(null);
+
+    const service = createScraperService({
+      traderRepository,
+      questRepository,
+      fetchQuestsPageJson,
+      fetchQuestDetailJson,
+      downloadTraderImage,
+      downloadItemImage,
+    });
+    await service.runScrape();
+
+    expect(questRepository.upsertBySlug).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requirements: { minLevel: 30, prerequisiteQuestSlugs: ["Debut"], loyaltyNotes: [] },
+      })
+    );
+  });
+
   it("keeps a divider entry between alternative items and never tries to download an icon for it", async () => {
     const upsertedTrader = { id: 1, name: "Prapor", slug: "prapor", tabOrder: 0 };
     const upsertedQuest = {
@@ -322,7 +391,9 @@ describe("createScraperService", () => {
     expect(summary.totalQuests).toBe(1);
     expect(summary.detailFetchFailures).toBe(1);
     expect(downloadItemImage).not.toHaveBeenCalled();
-    expect(questRepository.upsertBySlug).toHaveBeenCalledWith(expect.objectContaining({ requiredItems: [] }));
+    expect(questRepository.upsertBySlug).toHaveBeenCalledWith(
+      expect.objectContaining({ requiredItems: [], requirements: EMPTY_QUEST_REQUIREMENTS })
+    );
   });
 
   it("refuses to deactivate every quest when the parsed page yields zero quests", async () => {
