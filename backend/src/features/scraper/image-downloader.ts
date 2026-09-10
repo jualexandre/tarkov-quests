@@ -17,13 +17,14 @@ export function extensionFromImageUrl(url: string): string {
 
 export interface ImageDownloaderDeps {
   dir: string;
+  publicPathPrefix: string;
   fetchImpl?: typeof fetch;
   fileExists?: (path: string) => Promise<boolean>;
   writeFile?: (path: string, data: Buffer) => Promise<void>;
   mkdir?: (path: string) => Promise<void>;
 }
 
-export type DownloadTraderImage = (imageUrl: string | null, slug: string) => Promise<string | null>;
+export type DownloadImage = (imageUrl: string | null, slug: string) => Promise<string | null>;
 
 async function defaultFileExists(path: string): Promise<boolean> {
   try {
@@ -34,18 +35,18 @@ async function defaultFileExists(path: string): Promise<boolean> {
   }
 }
 
-export function createImageDownloader(deps: ImageDownloaderDeps): DownloadTraderImage {
+export function createImageDownloader(deps: ImageDownloaderDeps): DownloadImage {
   const fetchImpl = deps.fetchImpl ?? fetch;
   const fileExists = deps.fileExists ?? defaultFileExists;
   const writeFile = deps.writeFile ?? ((path: string, data: Buffer) => fs.writeFile(path, data));
   const mkdir = deps.mkdir ?? ((path: string) => fs.mkdir(path, { recursive: true }).then(() => undefined));
 
-  return async function downloadTraderImage(imageUrl, slug) {
+  return async function downloadImage(imageUrl, slug) {
     if (!imageUrl) return null;
 
     const filename = `${slug}.${extensionFromImageUrl(imageUrl)}`;
     const localPath = join(deps.dir, filename);
-    const publicPath = `/api/trader-images/${filename}`;
+    const publicPath = `${deps.publicPathPrefix}/${filename}`;
 
     if (await fileExists(localPath)) return publicPath;
 
@@ -57,7 +58,7 @@ export function createImageDownloader(deps: ImageDownloaderDeps): DownloadTrader
       await writeFile(localPath, buffer);
       return publicPath;
     } catch (err) {
-      console.warn(`Failed to download trader image for "${slug}": ${(err as Error).message}`);
+      console.warn(`Failed to download image for "${slug}": ${(err as Error).message}`);
       return null;
     }
   };

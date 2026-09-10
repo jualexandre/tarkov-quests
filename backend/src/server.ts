@@ -13,7 +13,7 @@ const traderImagesDir = join(dataDir, "trader-images");
 const prisma = getPrismaClient();
 const traderRepository = new PrismaTraderRepository(prisma);
 const questRepository = new PrismaQuestRepository(prisma);
-const downloadTraderImage = createImageDownloader({ dir: traderImagesDir });
+const downloadTraderImage = createImageDownloader({ dir: traderImagesDir, publicPathPrefix: "/api/trader-images" });
 const scraperService = createScraperService({
   traderRepository,
   questRepository,

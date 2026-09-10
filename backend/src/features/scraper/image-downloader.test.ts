@@ -31,6 +31,7 @@ describe("createImageDownloader", () => {
     const fetchImpl = vi.fn();
     const downloadTraderImage = createImageDownloader({
       dir: "/data/trader-images",
+      publicPathPrefix: "/api/trader-images",
       fetchImpl,
       fileExists: vi.fn().mockResolvedValue(false),
       writeFile: vi.fn().mockResolvedValue(undefined),
@@ -48,6 +49,7 @@ describe("createImageDownloader", () => {
     const writeFile = vi.fn();
     const downloadTraderImage = createImageDownloader({
       dir: "/data/trader-images",
+      publicPathPrefix: "/api/trader-images",
       fetchImpl,
       fileExists: vi.fn().mockResolvedValue(true),
       writeFile,
@@ -67,6 +69,7 @@ describe("createImageDownloader", () => {
     const mkdir = vi.fn().mockResolvedValue(undefined);
     const downloadTraderImage = createImageDownloader({
       dir: "/data/trader-images",
+      publicPathPrefix: "/api/trader-images",
       fetchImpl,
       fileExists: vi.fn().mockResolvedValue(false),
       writeFile,
@@ -86,6 +89,7 @@ describe("createImageDownloader", () => {
     const writeFile = vi.fn();
     const downloadTraderImage = createImageDownloader({
       dir: "/data/trader-images",
+      publicPathPrefix: "/api/trader-images",
       fetchImpl,
       fileExists: vi.fn().mockResolvedValue(false),
       writeFile,
@@ -96,5 +100,20 @@ describe("createImageDownloader", () => {
 
     expect(result).toBeNull();
     expect(writeFile).not.toHaveBeenCalled();
+  });
+
+  it("uses the given publicPathPrefix, so the same factory can serve a different image kind", async () => {
+    const downloadItemImage = createImageDownloader({
+      dir: "/data/item-images",
+      publicPathPrefix: "/api/item-images",
+      fetchImpl: vi.fn(),
+      fileExists: vi.fn().mockResolvedValue(true),
+      writeFile: vi.fn(),
+      mkdir: vi.fn().mockResolvedValue(undefined),
+    });
+
+    const result = await downloadItemImage(WIKI_IMAGE_URL, "secure-folder-0060");
+
+    expect(result).toBe("/api/item-images/secure-folder-0060.png");
   });
 });
