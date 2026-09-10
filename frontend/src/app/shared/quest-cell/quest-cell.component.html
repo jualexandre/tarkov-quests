@@ -1,4 +1,8 @@
-<div class="flex items-start gap-2">
+<div
+  class="flex items-start gap-2 border-l-2 pl-2"
+  [class.border-red-400/60]="isLocked && !quest.completed"
+  [class.border-transparent]="!(isLocked && !quest.completed)"
+>
   <input
     type="checkbox"
     class="mt-1 h-4 w-4 accent-[var(--color-accent)]"
@@ -9,12 +13,16 @@
     <p
       class="font-medium"
       [class.line-through]="quest.completed"
-      [class.text-[var(--color-text-muted)]]="quest.completed"
-      [class.opacity-60]="isLocked"
+      [class.text-[var(--color-text-muted)]]="quest.completed || isLocked"
+      [class.text-[var(--color-accent)]]="!quest.completed && !isLocked"
     >
       {{ quest.name }}
-      @if (isLocked) {
-        <span [title]="lockTooltip">🔒</span>
+      @if (isLocked && !quest.completed) {
+        <span
+          [title]="lockTooltip"
+          class="ml-1 text-[10px] uppercase rounded px-1.5 py-0.5 bg-red-400/20 text-red-400 whitespace-nowrap"
+          >🔒 Locked</span
+        >
       }
     </p>
     <a

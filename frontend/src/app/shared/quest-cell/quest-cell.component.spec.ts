@@ -53,12 +53,15 @@ describe("QuestCellComponent", () => {
     expect(emitted).toEqual([{ id: 1, completed: true }]);
   });
 
-  it("does not show a lock icon when there are no requirements", () => {
+  it("does not show a lock badge when there are no requirements, and shows the name in gold since the quest is available", () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).not.toContain("🔒");
+    const name = el.querySelector("p") as HTMLElement;
+    expect(name.className).toContain("text-[var(--color-accent)]");
+    expect(name.className).not.toContain("text-[var(--color-text-muted)]");
   });
 
-  it("shows a lock icon and dims the name when the player's level is below the required level", () => {
+  it("shows a 'Locked' badge, a red left border, and grays out the name when the player's level is below the required level", () => {
     fixture.componentRef.setInput("quest", {
       id: 1,
       name: "Fertilizers",
@@ -71,11 +74,15 @@ describe("QuestCellComponent", () => {
 
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain("🔒");
+    expect(el.textContent).toContain("Locked");
     const name = el.querySelector("p") as HTMLElement;
-    expect(name.className).toContain("opacity-60");
+    expect(name.className).toContain("text-[var(--color-text-muted)]");
+    expect(name.className).not.toContain("text-[var(--color-accent)]");
+    const wrapper = el.querySelector("div.flex.items-start") as HTMLElement;
+    expect(wrapper.className).toContain("border-red-400/60");
   });
 
-  it("does not lock by level when the player level has not been entered", () => {
+  it("does not lock by level when the player level has not been entered, and the name stays gold", () => {
     fixture.componentRef.setInput("quest", {
       id: 1,
       name: "Fertilizers",
@@ -88,6 +95,28 @@ describe("QuestCellComponent", () => {
 
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).not.toContain("🔒");
+    const name = el.querySelector("p") as HTMLElement;
+    expect(name.className).toContain("text-[var(--color-accent)]");
+  });
+
+  it("does not show the locked badge or border on a completed quest even if its requirements aren't met", () => {
+    fixture.componentRef.setInput("quest", {
+      id: 1,
+      name: "Fertilizers",
+      completed: true,
+      wikiUrl: "/wiki/Fertilizers",
+      requirements: { minLevel: 30, prerequisiteQuestSlugs: [], loyaltyNotes: [] },
+    });
+    fixture.componentRef.setInput("playerLevel", 20);
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const name = el.querySelector("p") as HTMLElement;
+    expect(name.textContent).not.toContain("🔒");
+    expect(name.className).toContain("line-through");
+    expect(name.className).toContain("text-[var(--color-text-muted)]");
+    const wrapper = el.querySelector("div.flex.items-start") as HTMLElement;
+    expect(wrapper.className).not.toContain("border-red-400/60");
   });
 
   it("shows a lock icon when a prerequisite quest is known and not completed", () => {
