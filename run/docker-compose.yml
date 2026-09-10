@@ -4,7 +4,7 @@ services:
   backend:
     build: ../backend
     volumes:
-      - tarkov_data:/app/data
+      - ./data/prod:/app/data
     ports:
       - "3000:3000"
   frontend:
@@ -13,6 +13,3 @@ services:
       - "8080:80"
     depends_on:
       - backend
-
-volumes:
-  tarkov_data:
