@@ -1,0 +1,26 @@
+@if (minLevel !== null || prerequisites.length > 0 || loyaltyNotes.length > 0) {
+  <div class="mt-1 flex flex-col gap-0.5 text-xs">
+    @if (minLevel !== null) {
+      <span
+        [class.text-green-400]="levelMet === true"
+        [class.text-red-400]="levelMet === false"
+        [class.text-[var(--color-text-muted)]]="levelMet === null"
+      >
+        @if (levelMet === true) {
+          ✓
+        } @else if (levelMet === false) {
+          🔒
+        }
+        Level {{ minLevel }} required
+      </span>
+    }
+    @for (prerequisite of prerequisites; track prerequisite.name) {
+      <span [class.text-green-400]="prerequisite.completed" [class.text-red-400]="!prerequisite.completed">
+        {{ prerequisite.completed ? "✓" : "🔒" }} {{ prerequisite.name }}
+      </span>
+    }
+    @for (note of loyaltyNotes; track $index) {
+      <span class="text-[var(--color-text-muted)]" [innerHTML]="note"></span>
+    }
+  </div>
+}
