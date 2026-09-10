@@ -44,6 +44,14 @@ describe("QuestsPageComponent", () => {
     fixture.detectChanges();
   }
 
+  function selectedTraderName(): string | undefined {
+    const el: HTMLElement = fixture.nativeElement;
+    const button = Array.from(el.querySelectorAll("app-trader-tabs button")).find(
+      (b) => b.getAttribute("aria-pressed") === "true"
+    );
+    return button?.textContent?.trim();
+  }
+
   beforeEach(() => {
     localStorage.clear();
     questsApi = { getTraders: vi.fn(), updateQuestCompleted: vi.fn(), runScrape: vi.fn() };
@@ -60,22 +68,19 @@ describe("QuestsPageComponent", () => {
 
   it("defaults to the first trader when nothing is stored", () => {
     setup();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector("app-quest-table")?.textContent).toContain("Prapor");
+    expect(selectedTraderName()).toContain("Prapor");
   });
 
   it("restores the previously selected trader from localStorage", () => {
     localStorage.setItem(STORAGE_KEY, "2");
     setup();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector("app-quest-table")?.textContent).toContain("Therapist");
+    expect(selectedTraderName()).toContain("Therapist");
   });
 
   it("falls back to the first trader when the stored id no longer matches any trader", () => {
     localStorage.setItem(STORAGE_KEY, "999");
     setup();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector("app-quest-table")?.textContent).toContain("Prapor");
+    expect(selectedTraderName()).toContain("Prapor");
   });
 
   it("persists the selected trader to localStorage and switches the displayed table", () => {
@@ -84,8 +89,7 @@ describe("QuestsPageComponent", () => {
     fixture.detectChanges();
 
     expect(localStorage.getItem(STORAGE_KEY)).toBe("2");
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector("app-quest-table")?.textContent).toContain("Therapist");
+    expect(selectedTraderName()).toContain("Therapist");
   });
 
   it("dispatches RunScrape when the scrape button is clicked", () => {

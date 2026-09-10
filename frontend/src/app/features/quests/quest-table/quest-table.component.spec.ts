@@ -34,9 +34,8 @@ describe("QuestTableComponent", () => {
     fixture.detectChanges();
   });
 
-  it("renders a Quest / Objectives / Rewards header and the trader name heading", () => {
+  it("renders a Quest / Objectives / Rewards header", () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector("h2")?.textContent).toContain("Prapor");
     const headers = Array.from(el.querySelectorAll("thead th")).map((th) => th.textContent?.trim());
     expect(headers).toEqual(["Quest", "Objectives", "Rewards"]);
   });
