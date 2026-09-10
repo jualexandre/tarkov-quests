@@ -22,6 +22,7 @@ describe("GET /api/traders", () => {
             wikiUrl: "/wiki/Debut",
             objectives: ["Eliminate 5 Scavs"],
             rewards: ["+1200 EXP"],
+            requiredItems: [],
             completed: false,
             active: true,
             lastSeenAt: new Date("2026-01-01T00:00:00.000Z"),

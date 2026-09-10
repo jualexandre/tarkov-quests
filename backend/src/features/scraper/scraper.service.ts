@@ -56,6 +56,7 @@ export function createScraperService(deps: ScraperServiceDeps): ScraperService {
             wikiUrl: parsedQuest.wikiUrl,
             objectives: parsedQuest.objectives,
             rewards: parsedQuest.rewards,
+            requiredItems: [],
           });
           seenSlugs.push(quest.wikiSlug);
           if (existingCount === 0) added += 1;

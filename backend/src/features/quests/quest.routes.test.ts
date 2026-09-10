@@ -14,6 +14,7 @@ describe("PATCH /api/quests/:id", () => {
       wikiUrl: "/wiki/Debut",
       objectives: [],
       rewards: [],
+      requiredItems: [],
       completed: true,
       active: true,
       lastSeenAt: new Date(),

@@ -35,6 +35,7 @@ describe("createScraperService", () => {
       wikiUrl: "/wiki/Debut",
       objectives: ["Eliminate 5 Scavs"],
       rewards: ["+1200 EXP"],
+      requiredItems: [],
       completed: false,
       active: true,
       lastSeenAt: new Date(),
@@ -75,6 +76,7 @@ describe("createScraperService", () => {
       wikiUrl: "/wiki/Debut",
       objectives: ["Eliminate 5 Scavs"],
       rewards: ["+1200 EXP"],
+      requiredItems: [],
     });
     expect(questRepository.deactivateNotIn).toHaveBeenCalledWith(["Debut"]);
     expect(summary).toEqual({ added: 1, updated: 0, deactivated: 2, totalQuests: 1 });

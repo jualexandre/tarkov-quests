@@ -1,5 +1,15 @@
 import type { Trader } from "../traders/trader.types";
 
+export interface RequiredItem {
+  name: string;
+  wikiUrl: string | null;
+  iconUrl: string | null;
+  amount: number;
+  requirement: string;
+  findInRaid: boolean;
+  notes: string;
+}
+
 export interface Quest {
   id: number;
   traderId: number;
@@ -8,6 +18,7 @@ export interface Quest {
   wikiUrl: string;
   objectives: string[];
   rewards: string[];
+  requiredItems: RequiredItem[];
   completed: boolean;
   active: boolean;
   lastSeenAt: Date;
@@ -24,6 +35,7 @@ export interface UpsertQuestInput {
   wikiUrl: string;
   objectives: string[];
   rewards: string[];
+  requiredItems: RequiredItem[];
 }
 
 export interface QuestRepository {

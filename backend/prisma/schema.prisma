@@ -16,17 +16,18 @@ model Trader {
 }
 
 model Quest {
-  id         Int      @id @default(autoincrement())
-  traderId   Int
-  trader     Trader   @relation(fields: [traderId], references: [id])
-  name       String
-  wikiSlug   String   @unique
-  wikiUrl    String
-  objectives String
-  rewards    String
-  completed  Boolean  @default(false)
-  active     Boolean  @default(true)
-  lastSeenAt DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  traderId      Int
+  trader        Trader   @relation(fields: [traderId], references: [id])
+  name          String
+  wikiSlug      String   @unique
+  wikiUrl       String
+  objectives    String
+  rewards       String
+  requiredItems String   @default("[]")
+  completed     Boolean  @default(false)
+  active        Boolean  @default(true)
+  lastSeenAt    DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { getPrismaClient } from "../../shared/prisma-client";
 import { PrismaTraderRepository } from "../traders/trader.repository";
 import { PrismaQuestRepository } from "./quest.repository";
+import type { RequiredItem } from "./quest.types";
 
 describe("PrismaQuestRepository", () => {
   const prisma = getPrismaClient();
@@ -22,10 +23,34 @@ describe("PrismaQuestRepository", () => {
       wikiUrl: "/wiki/Shooting_Cans",
       objectives: ["Locate the Utyos machine gun"],
       rewards: ["+1,600 EXP"],
+      requiredItems: [],
     });
     expect(quest.completed).toBe(false);
     expect(quest.active).toBe(true);
     expect(quest.objectives).toEqual(["Locate the Utyos machine gun"]);
+    expect(quest.requiredItems).toEqual([]);
+  });
+
+  it("stores and returns requiredItems through JSON encoding", async () => {
+    const item: RequiredItem = {
+      name: "Secure Folder 0060",
+      wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
+      iconUrl: "/api/item-images/Secure_Folder_0060.png",
+      amount: 1,
+      requirement: "Handover item",
+      findInRaid: true,
+      notes: "Quest item.",
+    };
+    const quest = await repo.upsertBySlug({
+      traderId,
+      name: "Health Care Privacy - Part 2",
+      wikiSlug: "Health_Care_Privacy_-_Part_2",
+      wikiUrl: "/wiki/Health_Care_Privacy_-_Part_2",
+      objectives: [],
+      rewards: [],
+      requiredItems: [item],
+    });
+    expect(quest.requiredItems).toEqual([item]);
   });
 
   it("preserves completed=true across a second upsert of the same wikiSlug", async () => {
@@ -36,6 +61,7 @@ describe("PrismaQuestRepository", () => {
       wikiUrl: "/wiki/Shooting_Cans",
       objectives: ["a"],
       rewards: ["b"],
+      requiredItems: [],
     });
     await repo.updateCompleted(first.id, true);
 
@@ -46,6 +72,7 @@ describe("PrismaQuestRepository", () => {
       wikiUrl: "/wiki/Shooting_Cans",
       objectives: ["a", "c"],
       rewards: ["b"],
+      requiredItems: [],
     });
 
     expect(second.id).toBe(first.id);
@@ -69,6 +96,7 @@ describe("PrismaQuestRepository", () => {
       wikiUrl: "/wiki/Debut",
       objectives: [],
       rewards: [],
+      requiredItems: [],
     });
     const inactiveQuest = await repo.upsertBySlug({
       traderId: therapist.id,
@@ -77,6 +105,7 @@ describe("PrismaQuestRepository", () => {
       wikiUrl: "/wiki/Old_Quest",
       objectives: [],
       rewards: [],
+      requiredItems: [],
     });
     await repo.deactivateNotIn(["Debut"]);
 
@@ -95,6 +124,7 @@ describe("PrismaQuestRepository", () => {
       wikiUrl: "/wiki/Debut",
       objectives: [],
       rewards: [],
+      requiredItems: [],
     });
     await repo.upsertBySlug({
       traderId,
@@ -103,6 +133,7 @@ describe("PrismaQuestRepository", () => {
       wikiUrl: "/wiki/Delivery_from_the_Past",
       objectives: [],
       rewards: [],
+      requiredItems: [],
     });
 
     const deactivatedCount = await repo.deactivateNotIn(["Debut"]);

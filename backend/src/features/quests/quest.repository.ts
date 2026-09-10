@@ -14,6 +14,7 @@ function toQuest(row: {
   wikiUrl: string;
   objectives: string;
   rewards: string;
+  requiredItems: string;
   completed: boolean;
   active: boolean;
   lastSeenAt: Date;
@@ -22,6 +23,7 @@ function toQuest(row: {
     ...row,
     objectives: JSON.parse(row.objectives),
     rewards: JSON.parse(row.rewards),
+    requiredItems: JSON.parse(row.requiredItems),
   };
 }
 
@@ -35,6 +37,7 @@ export class PrismaQuestRepository implements QuestRepository {
       wikiUrl: input.wikiUrl,
       objectives: JSON.stringify(input.objectives),
       rewards: JSON.stringify(input.rewards),
+      requiredItems: JSON.stringify(input.requiredItems),
       active: true,
       lastSeenAt: new Date(),
     };
