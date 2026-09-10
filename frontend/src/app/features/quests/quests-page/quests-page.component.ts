@@ -8,9 +8,11 @@ import { QuestTableComponent } from "../quest-table/quest-table.component";
 import { SearchResultsComponent, type SearchResultDto } from "../search-results/search-results.component";
 import { QuestsState } from "../state/quests.state";
 import { LoadTraders, RunScrape, ToggleQuestCompleted } from "../state/quests.actions";
+import type { QuestCompletionInfo } from "../../../core/quest-lock";
 import type { TraderDto, ScrapeSummaryDto, QuestToggledEvent } from "../../../core/api/quests.api";
 
 const SELECTED_TRADER_STORAGE_KEY = "tarkov-quests.selectedTraderId";
+const PLAYER_LEVEL_STORAGE_KEY = "tarkov-quests.playerLevel";
 
 @Component({
   selector: "app-quests-page",
@@ -33,6 +35,18 @@ export class QuestsPageComponent implements OnInit {
     if (traders.length === 0) return null;
     const id = this.selectedTraderId();
     return traders.find((trader) => trader.id === id) ?? traders[0];
+  });
+
+  playerLevel = signal<number | null>(this.readStoredPlayerLevel());
+
+  completionBySlug = computed<ReadonlyMap<string, QuestCompletionInfo>>(() => {
+    const map = new Map<string, QuestCompletionInfo>();
+    for (const trader of this.traders()) {
+      for (const quest of trader.quests) {
+        map.set(quest.wikiSlug, { name: quest.name, completed: quest.completed });
+      }
+    }
+    return map;
   });
 
   searchQuery = signal("");
@@ -68,8 +82,27 @@ export class QuestsPageComponent implements OnInit {
     this.searchQuery.set((event.target as HTMLInputElement).value);
   }
 
+  onPlayerLevelInput(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+    const level = raw === "" ? NaN : Number(raw);
+    if (Number.isNaN(level)) {
+      this.playerLevel.set(null);
+      localStorage.removeItem(PLAYER_LEVEL_STORAGE_KEY);
+      return;
+    }
+    this.playerLevel.set(level);
+    localStorage.setItem(PLAYER_LEVEL_STORAGE_KEY, String(level));
+  }
+
   private readStoredTraderId(): number | null {
     const stored = localStorage.getItem(SELECTED_TRADER_STORAGE_KEY);
     return stored ? Number(stored) : null;
+  }
+
+  private readStoredPlayerLevel(): number | null {
+    const stored = localStorage.getItem(PLAYER_LEVEL_STORAGE_KEY);
+    if (stored === null) return null;
+    const parsed = Number(stored);
+    return Number.isNaN(parsed) ? null : parsed;
   }
 }

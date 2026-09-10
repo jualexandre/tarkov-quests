@@ -20,6 +20,14 @@
         (input)="onSearchInput($event)"
       />
     </div>
+    <input
+      type="number"
+      min="1"
+      placeholder="Level"
+      class="w-20 rounded-md bg-[var(--color-surface)] border border-[var(--color-border)] py-2 px-3 text-sm placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-accent)]"
+      [value]="playerLevel() ?? ''"
+      (input)="onPlayerLevelInput($event)"
+    />
     <button
       type="button"
       class="px-4 py-2 rounded-md bg-[var(--color-accent)] text-black font-medium hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
@@ -42,7 +50,12 @@
   }
 
   @if (searchResults(); as results) {
-    <app-search-results [results]="results" (questToggled)="onQuestToggled($event)"></app-search-results>
+    <app-search-results
+      [results]="results"
+      [playerLevel]="playerLevel()"
+      [completionBySlug]="completionBySlug()"
+      (questToggled)="onQuestToggled($event)"
+    ></app-search-results>
   } @else {
     <app-trader-tabs
       [traders]="traders()"
@@ -51,7 +64,12 @@
     ></app-trader-tabs>
 
     @if (selectedTrader(); as trader) {
-      <app-quest-table [trader]="trader" (questToggled)="onQuestToggled($event)"></app-quest-table>
+      <app-quest-table
+        [trader]="trader"
+        [playerLevel]="playerLevel()"
+        [completionBySlug]="completionBySlug()"
+        (questToggled)="onQuestToggled($event)"
+      ></app-quest-table>
     }
   }
 </div>

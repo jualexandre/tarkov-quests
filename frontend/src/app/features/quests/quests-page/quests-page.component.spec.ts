@@ -8,6 +8,7 @@ import { QuestsApi } from "../../../core/api/quests.api";
 import type { TraderDto } from "../../../core/api/quests.api";
 
 const STORAGE_KEY = "tarkov-quests.selectedTraderId";
+const PLAYER_LEVEL_STORAGE_KEY = "tarkov-quests.playerLevel";
 
 function buildQuest(overrides: Partial<TraderDto["quests"][number]> = {}): TraderDto["quests"][number] {
   return {
@@ -162,6 +163,96 @@ describe("QuestsPageComponent", () => {
       const el: HTMLElement = fixture.nativeElement;
       expect(el.querySelector("app-trader-tabs")).not.toBeNull();
       expect(el.querySelector("app-search-results")).toBeNull();
+    });
+  });
+
+  describe("player level input", () => {
+    function levelInput(): HTMLInputElement {
+      return fixture.nativeElement.querySelector("input[type=number]") as HTMLInputElement;
+    }
+
+    it("starts empty when no level is stored", () => {
+      setup();
+      expect(levelInput().value).toBe("");
+    });
+
+    it("restores a previously entered level from localStorage", () => {
+      localStorage.setItem(PLAYER_LEVEL_STORAGE_KEY, "42");
+      setup();
+      expect(levelInput().value).toBe("42");
+    });
+
+    it("persists the entered level to localStorage", () => {
+      setup();
+      const input = levelInput();
+      input.value = "15";
+      input.dispatchEvent(new Event("input"));
+      fixture.detectChanges();
+
+      expect(localStorage.getItem(PLAYER_LEVEL_STORAGE_KEY)).toBe("15");
+    });
+
+    it("clears the stored level when the input is emptied", () => {
+      localStorage.setItem(PLAYER_LEVEL_STORAGE_KEY, "42");
+      setup();
+      const input = levelInput();
+      input.value = "";
+      input.dispatchEvent(new Event("input"));
+      fixture.detectChanges();
+
+      expect(localStorage.getItem(PLAYER_LEVEL_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  describe("cross-trader prerequisite completion", () => {
+    const chainTraders: TraderDto[] = [
+      {
+        id: 1,
+        name: "Prapor",
+        slug: "prapor",
+        tabOrder: 0,
+        imageUrl: null,
+        quests: [
+          buildQuest({
+            id: 1,
+            traderId: 1,
+            name: "The Punisher - Part 2",
+            wikiSlug: "The_Punisher_-_Part_2",
+            completed: false,
+          }),
+        ],
+      },
+      {
+        id: 2,
+        name: "Therapist",
+        slug: "therapist",
+        tabOrder: 1,
+        imageUrl: null,
+        quests: [
+          buildQuest({
+            id: 2,
+            traderId: 2,
+            name: "The Punisher - Part 3",
+            wikiSlug: "The_Punisher_-_Part_3",
+            completed: false,
+            requirements: {
+              minLevel: null,
+              prerequisiteQuestSlugs: ["The_Punisher_-_Part_2"],
+              loyaltyNotes: [],
+            },
+          }),
+        ],
+      },
+    ];
+
+    it("locks a quest whose prerequisite belongs to a different trader and isn't completed yet", () => {
+      questsApi.getTraders.mockReturnValue(of(chainTraders));
+      setup();
+      fixture.componentInstance.onTraderSelected(2);
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.textContent).toContain("🔒");
     });
   });
 });
