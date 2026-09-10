@@ -20,6 +20,12 @@ export interface RequiredItemDividerDto {
 
 export type RequiredItemEntryDto = RequiredItemDto | RequiredItemDividerDto;
 
+export interface QuestRequirementsDto {
+  minLevel: number | null;
+  prerequisiteQuestSlugs: string[];
+  loyaltyNotes: string[];
+}
+
 export interface QuestDto {
   id: number;
   traderId: number;
@@ -29,6 +35,7 @@ export interface QuestDto {
   objectives: string[];
   rewards: string[];
   requiredItems: RequiredItemEntryDto[];
+  requirements: QuestRequirementsDto;
   completed: boolean;
   active: boolean;
   lastSeenAt: string;

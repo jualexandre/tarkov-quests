@@ -21,6 +21,7 @@ describe("QuestsState", () => {
     objectives: [],
     rewards: [],
     requiredItems: [],
+    requirements: { minLevel: null, prerequisiteQuestSlugs: [], loyaltyNotes: [] },
     completed: false,
     active: true,
     lastSeenAt: "2026-01-01T00:00:00.000Z",
