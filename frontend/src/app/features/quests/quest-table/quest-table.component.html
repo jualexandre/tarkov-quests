@@ -1,26 +1,26 @@
 <div class="rounded-lg bg-[var(--color-bg)]">
-  <table class="w-full text-sm border-collapse mt-10">
+  <table class="w-full table-fixed text-sm border-collapse mt-10">
     <thead>
       <tr class="text-left text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
-        <th class="py-2 pr-2 w-1/6">Quest</th>
-        <th class="py-2 pr-2 w-1/4">Required items</th>
-        <th class="py-2 pr-4 w-1/3">Objectives</th>
-        <th class="py-2 w-1/4">Rewards</th>
+        <th class="py-2 pr-2 w-[15%]">Quest</th>
+        <th class="py-2 pr-2 w-[20%]">Required items</th>
+        <th class="py-2 pr-4 w-[45%]">Objectives</th>
+        <th class="py-2 w-[20%]">Rewards</th>
       </tr>
     </thead>
     <tbody>
       @for (quest of sortedQuests(); track quest.id) {
         <tr class="border-b border-[var(--color-border)] align-top">
-          <td class="py-2 pr-2">
+          <td class="py-2 pr-2 break-words">
             <app-quest-cell [quest]="quest" (toggled)="questToggled.emit($event)"></app-quest-cell>
           </td>
-          <td class="py-2 pr-2 text-[var(--color-text-muted)]">
+          <td class="py-2 pr-2 text-[var(--color-text-muted)] break-words">
             <app-required-item-list [items]="quest.requiredItems"></app-required-item-list>
           </td>
-          <td class="py-2 pr-4 text-[var(--color-text-muted)]">
+          <td class="py-2 pr-4 text-[var(--color-text-muted)] break-words">
             <app-quest-list [items]="quest.objectives"></app-quest-list>
           </td>
-          <td class="py-2 text-[var(--color-text-muted)]">
+          <td class="py-2 text-[var(--color-text-muted)] break-words">
             <app-quest-list [items]="quest.rewards"></app-quest-list>
           </td>
         </tr>
