@@ -20,7 +20,17 @@ describe("QuestTableComponent", () => {
         wikiUrl: "/wiki/Debut",
         objectives: ["Eliminate 5 Scavs"],
         rewards: ["+1200 EXP"],
-        requiredItems: [],
+        requiredItems: [
+          {
+            name: "Secure Folder 0060",
+            wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
+            iconUrl: null,
+            amount: 1,
+            requirement: "Handover item",
+            findInRaid: true,
+            notes: "",
+          },
+        ],
         completed: false,
         active: true,
         lastSeenAt: "2026-01-01T00:00:00.000Z",
@@ -35,10 +45,10 @@ describe("QuestTableComponent", () => {
     fixture.detectChanges();
   });
 
-  it("renders a Quest / Objectives / Rewards header", () => {
+  it("renders a Quest / Required items / Objectives / Rewards header", () => {
     const el: HTMLElement = fixture.nativeElement;
     const headers = Array.from(el.querySelectorAll("thead th")).map((th) => th.textContent?.trim());
-    expect(headers).toEqual(["Quest", "Objectives", "Rewards"]);
+    expect(headers).toEqual(["Quest", "Required items", "Objectives", "Rewards"]);
   });
 
   it("renders the quest name as plain text alongside a 'Show on Wiki' link to the quest's wiki page", () => {
@@ -55,6 +65,11 @@ describe("QuestTableComponent", () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain("Eliminate 5 Scavs");
     expect(el.textContent).toContain("+1200 EXP");
+  });
+
+  it("renders the quest's required items", () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.textContent).toContain("Secure Folder 0060");
   });
 
   it("shows a placeholder row when the trader has no active quests", () => {

@@ -18,7 +18,17 @@ describe("SearchResultsComponent", () => {
       wikiUrl: "/wiki/Debut",
       objectives: ["Eliminate 5 Scavs"],
       rewards: ["+1200 EXP"],
-      requiredItems: [],
+      requiredItems: [
+        {
+          name: "Secure Folder 0060",
+          wikiUrl: "https://escapefromtarkov.fandom.com/wiki/Secure_Folder_0060",
+          iconUrl: null,
+          amount: 1,
+          requirement: "Handover item",
+          findInRaid: true,
+          notes: "",
+        },
+      ],
       completed: false,
       active: true,
       lastSeenAt: "2026-01-01T00:00:00.000Z",
@@ -47,10 +57,10 @@ describe("SearchResultsComponent", () => {
     fixture.detectChanges();
   });
 
-  it("renders a Trader / Quest / Objectives / Rewards header", () => {
+  it("renders a Trader / Quest / Required items / Objectives / Rewards header", () => {
     const el: HTMLElement = fixture.nativeElement;
     const headers = Array.from(el.querySelectorAll("thead th")).map((th) => th.textContent?.trim());
-    expect(headers).toEqual(["Trader", "Quest", "Objectives", "Rewards"]);
+    expect(headers).toEqual(["Trader", "Quest", "Required items", "Objectives", "Rewards"]);
   });
 
   it("renders one row per matching quest with its trader name, objectives and rewards", () => {
@@ -63,6 +73,12 @@ describe("SearchResultsComponent", () => {
     expect(rows[0].textContent).toContain("+1200 EXP");
     expect(rows[1].textContent).toContain("Therapist");
     expect(rows[1].textContent).toContain("Shortage");
+  });
+
+  it("renders each result's required items", () => {
+    const el: HTMLElement = fixture.nativeElement;
+    const rows = el.querySelectorAll("tbody tr");
+    expect(rows[0].textContent).toContain("Secure Folder 0060");
   });
 
   it("renders the trader's portrait image in the Trader cell when imageUrl is set", () => {
