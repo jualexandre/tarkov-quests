@@ -59,9 +59,11 @@ describe("QuestCellComponent", () => {
     const name = el.querySelector("p") as HTMLElement;
     expect(name.className).toContain("text-[var(--color-accent)]");
     expect(name.className).not.toContain("text-[var(--color-text-muted)]");
+    const checkbox = el.querySelector("input[type=checkbox]") as HTMLInputElement;
+    expect(checkbox.disabled).toBe(false);
   });
 
-  it("shows a 'Locked' badge, a red left border, and grays out the name when the player's level is below the required level", () => {
+  it("shows a 'Locked' badge, a red left border, disables the checkbox, and grays out the name when the player's level is below the required level", () => {
     fixture.componentRef.setInput("quest", {
       id: 1,
       name: "Fertilizers",
@@ -80,6 +82,8 @@ describe("QuestCellComponent", () => {
     expect(name.className).not.toContain("text-[var(--color-accent)]");
     const wrapper = el.querySelector("div.flex.items-start") as HTMLElement;
     expect(wrapper.className).toContain("border-red-400/60");
+    const checkbox = el.querySelector("input[type=checkbox]") as HTMLInputElement;
+    expect(checkbox.disabled).toBe(true);
   });
 
   it("does not lock by level when the player level has not been entered, and the name stays gold", () => {
@@ -99,7 +103,7 @@ describe("QuestCellComponent", () => {
     expect(name.className).toContain("text-[var(--color-accent)]");
   });
 
-  it("does not show the locked badge or border on a completed quest even if its requirements aren't met", () => {
+  it("does not show the locked badge or border, and keeps the checkbox usable, on a completed quest even if its requirements aren't met", () => {
     fixture.componentRef.setInput("quest", {
       id: 1,
       name: "Fertilizers",
@@ -117,6 +121,8 @@ describe("QuestCellComponent", () => {
     expect(name.className).toContain("text-[var(--color-text-muted)]");
     const wrapper = el.querySelector("div.flex.items-start") as HTMLElement;
     expect(wrapper.className).not.toContain("border-red-400/60");
+    const checkbox = el.querySelector("input[type=checkbox]") as HTMLInputElement;
+    expect(checkbox.disabled).toBe(false);
   });
 
   it("shows a lock icon when a prerequisite quest is known and not completed", () => {

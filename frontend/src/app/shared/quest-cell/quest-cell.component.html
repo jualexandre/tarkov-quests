@@ -1,12 +1,14 @@
 <div
   class="flex items-start gap-2 border-l-2 pl-2"
-  [class.border-red-400/60]="isLocked && !quest.completed"
-  [class.border-transparent]="!(isLocked && !quest.completed)"
+  [class.border-red-400/60]="showAsLocked"
+  [class.border-transparent]="!showAsLocked"
 >
   <input
     type="checkbox"
-    class="mt-1 h-4 w-4 accent-[var(--color-accent)]"
+    class="mt-1 h-4 w-4 accent-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-50"
     [checked]="quest.completed"
+    [disabled]="showAsLocked"
+    [title]="showAsLocked ? lockTooltip : ''"
     (change)="onToggleCompleted($event)"
   />
   <div>
@@ -17,7 +19,7 @@
       [class.text-[var(--color-accent)]]="!quest.completed && !isLocked"
     >
       {{ quest.name }}
-      @if (isLocked && !quest.completed) {
+      @if (showAsLocked) {
         <span
           [title]="lockTooltip"
           class="ml-1 text-[10px] uppercase rounded px-1.5 py-0.5 bg-red-400/20 text-red-400 whitespace-nowrap"

@@ -37,6 +37,13 @@ export class QuestCellComponent {
     return this.requirementsStatus.locked;
   }
 
+  // A completed quest keeps its own strike-through/muted style and stays
+  // interactive (e.g. to un-complete it) even if its requirements data says
+  // it's locked — the lock treatment only applies while it's still pending.
+  get showAsLocked(): boolean {
+    return this.isLocked && !this.quest.completed;
+  }
+
   get lockTooltip(): string {
     const status = this.requirementsStatus;
     const reasons: string[] = [];
