@@ -15,9 +15,42 @@
   --color-text-muted: #9a9aa5;
   --color-accent: #d4a24e;
   --color-accent-hover: #e5b563;
+  --color-available: #8fae5f;
+  --color-locked: #b1533f;
+  --color-locked-soft: rgba(177, 83, 63, 0.14);
+  --color-completed: #77777f;
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: "Oswald", sans-serif;
+}
+
+/* Status stamp on a quest name (locked/cleared) — a case-file style marker
+   rather than a colored dot, so it reads next to the border-left accent. */
+.stamp {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transform: rotate(-4deg);
+  white-space: nowrap;
+  font-family: "Oswald", sans-serif;
+}
+.stamp-locked {
+  color: var(--color-locked);
+  border: 1px solid var(--color-locked);
+  background: var(--color-locked-soft);
+}
+.stamp-cleared {
+  color: var(--color-completed);
+  border: 1px solid var(--color-completed);
 }
