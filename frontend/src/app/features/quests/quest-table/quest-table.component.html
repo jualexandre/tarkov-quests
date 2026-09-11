@@ -2,10 +2,9 @@
   <table class="w-full table-fixed text-sm border-separate [border-spacing:0_10px] mt-10">
     <thead>
       <tr class="font-display text-left text-[var(--color-text-muted)] sticky top-0 bg-[var(--color-bg)] z-10">
-        <th class="pb-2 pl-3 border-b border-[var(--color-border)] w-[25%]">Quest</th>
-        <th class="pb-2 pr-4 border-b border-[var(--color-border)] w-[39%]">Objectives</th>
-        <th class="pb-2 pr-2 border-b border-[var(--color-border)] w-[19%]">Required items</th>
-        <th class="pb-2 pr-3 border-b border-[var(--color-border)] w-[17%]">Rewards</th>
+        <th class="pb-2 pl-3 border-b border-[var(--color-border)] w-[30%]">Quest</th>
+        <th class="pb-2 pr-4 border-b border-[var(--color-border)] w-[46%]">Objectives</th>
+        <th class="pb-2 pr-3 border-b border-[var(--color-border)] w-[24%]">Rewards</th>
       </tr>
     </thead>
     <tbody>
@@ -22,16 +21,11 @@
           <td class="py-3 pr-4 text-[var(--color-text-muted)] break-words">
             <app-quest-list [items]="quest.objectives" [large]="true"></app-quest-list>
           </td>
-          <td class="py-3 pr-2 text-[var(--color-text-muted)] break-words">
-            <app-required-item-list [items]="quest.requiredItems"></app-required-item-list>
-          </td>
-          <td class="py-3 pr-3 rounded-r-lg text-[var(--color-text-muted)] break-words">
-            <app-quest-list [items]="quest.rewards"></app-quest-list>
-          </td>
+          <td class="py-3 pr-3 rounded-r-lg text-[13px] leading-snug text-[var(--color-text-muted)] break-words" [innerHTML]="quest.rewards.join(', ')"></td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="4" class="py-3 text-sm text-[var(--color-text-muted)]">No active quests.</td>
+          <td colspan="3" class="py-3 text-sm text-[var(--color-text-muted)]">No active quests.</td>
         </tr>
       }
     </tbody>

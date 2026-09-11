@@ -41,5 +41,10 @@
       [prerequisites]="requirementsStatus.prerequisites"
       [loyaltyNotes]="quest.requirements.loyaltyNotes"
     ></app-quest-requirements>
+    @if (quest.requiredItems.length > 0) {
+      <div class="mt-1.5">
+        <app-required-item-list [items]="quest.requiredItems"></app-required-item-list>
+      </div>
+    }
   </div>
 </div>
