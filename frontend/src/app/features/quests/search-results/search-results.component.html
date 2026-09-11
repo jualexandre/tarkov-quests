@@ -1,24 +1,23 @@
 <div class="rounded-lg bg-[var(--color-bg)]">
-  <table class="w-full table-fixed text-sm border-collapse">
+  <table class="w-full table-fixed text-sm border-separate [border-spacing:0_10px]">
     <thead>
-      <tr class="text-left text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
-        <th class="py-2 pr-2 w-[10%]">Trader</th>
-        <th class="py-2 pr-2 w-[13%]">Quest</th>
-        <th class="py-2 pr-2 w-[17%]">Required items</th>
-        <th class="py-2 pr-4 w-[42%]">Objectives</th>
-        <th class="py-2 w-[18%]">Rewards</th>
+      <tr class="font-display text-left text-[var(--color-text-muted)] sticky top-0 bg-[var(--color-bg)] z-10">
+        <th class="pb-2 pl-3 border-b border-[var(--color-border)] w-[9%]">Trader</th>
+        <th class="pb-2 pr-2 border-b border-[var(--color-border)] w-[25%]">Quest</th>
+        <th class="pb-2 pr-4 border-b border-[var(--color-border)] w-[42%]">Objectives</th>
+        <th class="pb-2 pr-3 border-b border-[var(--color-border)] w-[24%]">Rewards</th>
       </tr>
     </thead>
     <tbody>
       @for (quest of sortedResults(); track quest.id) {
-        <tr class="border-b border-[var(--color-border)] align-top">
-          <td class="py-2 pr-2 break-words">
+        <tr class="align-top bg-[var(--color-surface)]">
+          <td class="py-3 pl-3 pr-2 rounded-l-lg break-words">
             <div class="flex items-center gap-2 text-[var(--color-accent)]">
               <app-trader-avatar [name]="quest.traderName" [imageUrl]="quest.traderImageUrl"></app-trader-avatar>
               <span class="truncate">{{ quest.traderName }}</span>
             </div>
           </td>
-          <td class="py-2 pr-2 break-words">
+          <td class="py-3 pr-2 break-words">
             <app-quest-cell
               [quest]="quest"
               [playerLevel]="playerLevel"
@@ -26,19 +25,16 @@
               (toggled)="questToggled.emit($event)"
             ></app-quest-cell>
           </td>
-          <td class="py-2 pr-2 text-[var(--color-text-muted)] break-words">
-            <app-required-item-list [items]="quest.requiredItems"></app-required-item-list>
+          <td class="py-3 pr-4 text-[var(--color-text-muted)] break-words">
+            <app-quest-list [items]="quest.objectives" [large]="true"></app-quest-list>
           </td>
-          <td class="py-2 pr-4 text-[var(--color-text-muted)] break-words">
-            <app-quest-list [items]="quest.objectives"></app-quest-list>
-          </td>
-          <td class="py-2 text-[var(--color-text-muted)] break-words">
-            <app-quest-list [items]="quest.rewards"></app-quest-list>
+          <td class="py-3 pr-3 rounded-r-lg text-[var(--color-text-muted)] break-words">
+            <app-quest-list [items]="quest.rewards" [condense]="true"></app-quest-list>
           </td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="5" class="py-3 text-sm text-[var(--color-text-muted)]">No quests found matching your search.</td>
+          <td colspan="4" class="py-3 text-sm text-[var(--color-text-muted)]">No quests found matching your search.</td>
         </tr>
       }
     </tbody>

@@ -1,7 +1,8 @@
 <div
   class="flex items-start gap-2 border-l-2 pl-2"
-  [class.border-red-400/60]="showAsLocked"
-  [class.border-transparent]="!showAsLocked"
+  [class.border-[var(--color-available)]]="!quest.completed && !showAsLocked"
+  [class.border-[var(--color-locked)]]="showAsLocked"
+  [class.border-transparent]="quest.completed"
 >
   <input
     type="checkbox"
@@ -13,18 +14,17 @@
   />
   <div>
     <p
-      class="font-medium"
+      class="font-display text-[15px]"
       [class.line-through]="quest.completed"
       [class.text-[var(--color-text-muted)]]="quest.completed || isLocked"
       [class.text-[var(--color-accent)]]="!quest.completed && !isLocked"
     >
       {{ quest.name }}
       @if (showAsLocked) {
-        <span
-          [title]="lockTooltip"
-          class="ml-1 text-[10px] uppercase rounded px-1.5 py-0.5 bg-red-400/20 text-red-400 whitespace-nowrap"
-          >🔒 Locked</span
-        >
+        <span [title]="lockTooltip" class="stamp stamp-locked">Locked</span>
+      }
+      @if (quest.completed) {
+        <span class="stamp stamp-cleared">Cleared</span>
       }
     </p>
     <a
@@ -41,5 +41,10 @@
       [prerequisites]="requirementsStatus.prerequisites"
       [loyaltyNotes]="quest.requirements.loyaltyNotes"
     ></app-quest-requirements>
+    @if (quest.requiredItems.length > 0) {
+      <div class="mt-1.5">
+        <app-required-item-list [items]="quest.requiredItems"></app-required-item-list>
+      </div>
+    }
   </div>
 </div>
