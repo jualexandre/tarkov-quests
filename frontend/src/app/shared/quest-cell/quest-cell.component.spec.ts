@@ -81,7 +81,7 @@ describe("QuestCellComponent", () => {
     expect(name.className).toContain("text-[var(--color-text-muted)]");
     expect(name.className).not.toContain("text-[var(--color-accent)]");
     const wrapper = el.querySelector("div.flex.items-start") as HTMLElement;
-    expect(wrapper.className).toContain("border-red-400/60");
+    expect(wrapper.className).toContain("border-[var(--color-locked)]");
     const checkbox = el.querySelector("input[type=checkbox]") as HTMLInputElement;
     expect(checkbox.disabled).toBe(true);
   });
@@ -134,7 +134,7 @@ describe("QuestCellComponent", () => {
       requirements: { minLevel: null, prerequisiteQuestSlugs: ["The_Punisher_-_Part_2"], loyaltyNotes: [] },
     });
     const completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map([
-      ["The_Punisher_-_Part_2", { name: "The Punisher - Part 2", completed: false }],
+      ["The_Punisher_-_Part_2", { id: 2, traderId: 1, name: "The Punisher - Part 2", completed: false }],
     ]);
     fixture.componentRef.setInput("completionBySlug", completionBySlug);
     fixture.detectChanges();
@@ -153,13 +153,35 @@ describe("QuestCellComponent", () => {
       requirements: { minLevel: null, prerequisiteQuestSlugs: ["The_Punisher_-_Part_2"], loyaltyNotes: [] },
     });
     const completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map([
-      ["The_Punisher_-_Part_2", { name: "The Punisher - Part 2", completed: true }],
+      ["The_Punisher_-_Part_2", { id: 2, traderId: 1, name: "The Punisher - Part 2", completed: true }],
     ]);
     fixture.componentRef.setInput("completionBySlug", completionBySlug);
     fixture.detectChanges();
 
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).not.toContain("🔒");
+  });
+
+  it("bubbles prerequisiteSelected up when a locked prerequisite is clicked", () => {
+    fixture.componentRef.setInput("quest", {
+      id: 3,
+      name: "The Punisher - Part 3",
+      completed: false,
+      wikiUrl: "/wiki/The_Punisher_-_Part_3",
+      requirements: { minLevel: null, prerequisiteQuestSlugs: ["The_Punisher_-_Part_2"], loyaltyNotes: [] },
+    });
+    const completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map([
+      ["The_Punisher_-_Part_2", { id: 2, traderId: 1, name: "The Punisher - Part 2", completed: false }],
+    ]);
+    fixture.componentRef.setInput("completionBySlug", completionBySlug);
+    fixture.detectChanges();
+
+    const emitted: Array<{ id: number; traderId: number }> = [];
+    fixture.componentInstance.prerequisiteSelected.subscribe((v) => emitted.push(v));
+    const button = (fixture.nativeElement as HTMLElement).querySelector("button") as HTMLButtonElement;
+    button.click();
+
+    expect(emitted).toEqual([{ id: 2, traderId: 1 }]);
   });
 
   it("renders loyalty notes as plain informational text without locking the quest", () => {

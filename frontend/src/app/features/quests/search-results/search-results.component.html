@@ -23,6 +23,7 @@
               [playerLevel]="playerLevel"
               [completionBySlug]="completionBySlug"
               (toggled)="questToggled.emit($event)"
+              (prerequisiteSelected)="prerequisiteSelected.emit($event)"
             ></app-quest-cell>
           </td>
           <td class="py-3 pr-4 text-[var(--color-text-muted)] break-words">
@@ -32,6 +33,13 @@
             <app-quest-list [items]="quest.rewards" [condense]="true"></app-quest-list>
           </td>
         </tr>
+        @if (quest.requiredItems.length > 0) {
+          <tr class="bg-[var(--color-surface)]">
+            <td colspan="4" class="px-3 pt-2 pb-3 rounded-b-lg border-t border-[var(--color-border)] break-words">
+              <app-required-item-list [items]="quest.requiredItems"></app-required-item-list>
+            </td>
+          </tr>
+        }
       } @empty {
         <tr>
           <td colspan="4" class="py-3 text-sm text-[var(--color-text-muted)]">No quests found matching your search.</td>

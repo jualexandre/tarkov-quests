@@ -40,6 +40,7 @@
       [levelMet]="requirementsStatus.levelMet"
       [prerequisites]="requirementsStatus.prerequisites"
       [loyaltyNotes]="quest.requirements.loyaltyNotes"
+      (prerequisiteSelected)="prerequisiteSelected.emit($event)"
     ></app-quest-requirements>
   </div>
 </div>

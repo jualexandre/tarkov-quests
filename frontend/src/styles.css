@@ -54,3 +54,17 @@ body {
   color: var(--color-completed);
   border: 1px solid var(--color-completed);
 }
+
+/* Briefly drawn around a quest row after jumping to it from a locked
+   prerequisite link elsewhere, so the destination is easy to spot. */
+@keyframes quest-highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--color-accent);
+  }
+}
+.quest-highlight {
+  animation: quest-highlight-pulse 0.5s ease-in-out 2;
+}

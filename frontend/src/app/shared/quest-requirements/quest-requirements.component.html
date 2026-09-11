@@ -1,5 +1,5 @@
 @if (minLevel !== null || prerequisites.length > 0 || loyaltyNotes.length > 0) {
-  <div class="mt-1 flex flex-col gap-0.5 text-xs">
+  <div class="mt-1 pt-1 border-t border-[var(--color-border)] flex flex-col gap-0.5 text-xs">
     @if (minLevel !== null) {
       <span
         [class.text-[var(--color-available)]]="levelMet === true"
@@ -15,12 +15,17 @@
       </span>
     }
     @for (prerequisite of prerequisites; track prerequisite.name) {
-      <span
-        [class.text-[var(--color-available)]]="prerequisite.completed"
-        [class.text-[var(--color-locked)]]="!prerequisite.completed"
-      >
-        {{ prerequisite.completed ? "✓" : "🔒" }} {{ prerequisite.name }}
-      </span>
+      @if (prerequisite.completed) {
+        <span class="text-[var(--color-available)]"> ✓ {{ prerequisite.name }} </span>
+      } @else {
+        <button
+          type="button"
+          class="text-left cursor-pointer text-[var(--color-locked)] hover:text-[var(--color-accent)]"
+          (click)="prerequisiteSelected.emit({ id: prerequisite.id, traderId: prerequisite.traderId })"
+        >
+          🔒 {{ prerequisite.name }}
+        </button>
+      }
     }
     @for (note of loyaltyNotes; track $index) {
       <span class="text-[var(--color-text-muted)]" [innerHTML]="note"></span>

@@ -56,6 +56,7 @@
       [playerLevel]="playerLevel()"
       [completionBySlug]="completionBySlug()"
       (questToggled)="onQuestToggled($event)"
+      (prerequisiteSelected)="onPrerequisiteSelected($event)"
     ></app-search-results>
   } @else {
     <app-trader-tabs
@@ -70,6 +71,7 @@
         [playerLevel]="playerLevel()"
         [completionBySlug]="completionBySlug()"
         (questToggled)="onQuestToggled($event)"
+        (prerequisiteSelected)="onPrerequisiteSelected($event)"
       ></app-quest-table>
     }
   }

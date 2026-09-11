@@ -47,15 +47,15 @@ describe("QuestTableComponent", () => {
     fixture.detectChanges();
   });
 
-  it("renders a Quest / Required items / Objectives / Rewards header", () => {
+  it("renders a Quest / Objectives / Rewards header", () => {
     const el: HTMLElement = fixture.nativeElement;
     const headers = Array.from(el.querySelectorAll("thead th")).map((th) => th.textContent?.trim());
-    expect(headers).toEqual(["Quest", "Required items", "Objectives", "Rewards"]);
+    expect(headers).toEqual(["Quest", "Objectives", "Rewards"]);
   });
 
   it("renders the quest name as plain text alongside a 'Show on Wiki' link to the quest's wiki page", () => {
     const el: HTMLElement = fixture.nativeElement;
-    const row = el.querySelector("tbody tr") as HTMLElement;
+    const row = el.querySelector("tbody tr:not([aria-hidden])") as HTMLElement;
     expect(row.textContent).toContain("Debut");
 
     const link = row.querySelector("a") as HTMLAnchorElement;
@@ -79,6 +79,36 @@ describe("QuestTableComponent", () => {
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain("No active quests.");
+  });
+
+  it("puts a `quest-{id}` id on each quest's row so it can be scrolled into view", () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector("#quest-1")).not.toBeNull();
+  });
+
+  it("bubbles prerequisiteSelected up from a quest cell", () => {
+    const lockedTrader: TraderDto = {
+      ...trader,
+      quests: [
+        {
+          ...trader.quests[0],
+          requirements: { minLevel: null, prerequisiteQuestSlugs: ["Some_Other_Quest"], loyaltyNotes: [] },
+        },
+      ],
+    };
+    fixture.componentRef.setInput("trader", lockedTrader);
+    fixture.componentRef.setInput(
+      "completionBySlug",
+      new Map([["Some_Other_Quest", { id: 9, traderId: 2, name: "Some Other Quest", completed: false }]])
+    );
+    fixture.detectChanges();
+
+    const emitted: Array<{ id: number; traderId: number }> = [];
+    fixture.componentInstance.prerequisiteSelected.subscribe((v) => emitted.push(v));
+    const button = (fixture.nativeElement as HTMLElement).querySelector("button") as HTMLButtonElement;
+    button.click();
+
+    expect(emitted).toEqual([{ id: 9, traderId: 2 }]);
   });
 
   it("emits questToggled with the new completed value when the checkbox changes", () => {
@@ -134,7 +164,11 @@ describe("QuestTableComponent", () => {
 
     function renderedQuestNames(): string[] {
       const el: HTMLElement = fixture.nativeElement;
-      return Array.from(el.querySelectorAll("tbody tr td:first-child p")).map((p) => p.textContent?.trim() ?? "");
+      return Array.from(el.querySelectorAll("tbody tr td:first-child p")).map((p) => {
+        const clone = p.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll(".stamp").forEach((stamp) => stamp.remove());
+        return clone.textContent?.trim() ?? "";
+      });
     }
 
     it("keeps quests in their original order when none are completed", () => {

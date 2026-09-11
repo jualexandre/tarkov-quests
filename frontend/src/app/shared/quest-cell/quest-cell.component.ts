@@ -5,6 +5,7 @@ import { evaluateRequirements } from "../../core/quest-lock";
 import type { QuestCompletionInfo, RequirementsStatus } from "../../core/quest-lock";
 import type { QuestRequirementsDto, QuestToggledEvent } from "../../core/api/quests.api";
 import { QuestRequirementsComponent } from "../quest-requirements/quest-requirements.component";
+import type { PrerequisiteSelectedEvent } from "../quest-requirements/quest-requirements.component";
 
 export interface QuestCellDto {
   id: number;
@@ -26,6 +27,7 @@ export class QuestCellComponent {
   @Input() playerLevel: number | null = null;
   @Input() completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map();
   @Output() toggled = new EventEmitter<QuestToggledEvent>();
+  @Output() prerequisiteSelected = new EventEmitter<PrerequisiteSelectedEvent>();
 
   wikiBaseUrl = WIKI_BASE_URL;
 

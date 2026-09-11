@@ -10,7 +10,7 @@
     <tbody>
       <tr aria-hidden="true" class="h-[10px]"><td colspan="3"></td></tr>
       @for (quest of sortedQuests(); track quest.id) {
-        <tr class="align-top bg-[var(--color-surface)]">
+        <tr [id]="'quest-' + quest.id" class="align-top bg-[var(--color-surface)]">
           <td
             class="py-3 pl-3 pr-2 break-words"
             [class.rounded-tl-lg]="quest.requiredItems.length > 0"
@@ -21,6 +21,7 @@
               [playerLevel]="playerLevel"
               [completionBySlug]="completionBySlug"
               (toggled)="questToggled.emit($event)"
+              (prerequisiteSelected)="prerequisiteSelected.emit($event)"
             ></app-quest-cell>
           </td>
           <td class="py-3 pr-4 text-white break-words">

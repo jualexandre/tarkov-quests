@@ -1,11 +1,15 @@
 import type { QuestRequirementsDto } from "./api/quests.api";
 
 export interface QuestCompletionInfo {
+  id: number;
+  traderId: number;
   name: string;
   completed: boolean;
 }
 
 export interface PrerequisiteStatus {
+  id: number;
+  traderId: number;
   name: string;
   completed: boolean;
 }
@@ -27,7 +31,7 @@ export function evaluateRequirements(
   const prerequisites: PrerequisiteStatus[] = requirements.prerequisiteQuestSlugs
     .map((slug) => completionBySlug.get(slug))
     .filter((entry): entry is QuestCompletionInfo => entry !== undefined)
-    .map((entry) => ({ name: entry.name, completed: entry.completed }));
+    .map((entry) => ({ id: entry.id, traderId: entry.traderId, name: entry.name, completed: entry.completed }));
 
   const locked = levelMet === false || prerequisites.some((p) => !p.completed);
 

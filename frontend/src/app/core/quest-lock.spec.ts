@@ -27,18 +27,18 @@ describe("evaluateRequirements", () => {
   });
 
   it("locks when a prerequisite quest is known and not completed", () => {
-    const completionBySlug = new Map([["Debut", { name: "Debut", completed: false }]]);
+    const completionBySlug = new Map([["Debut", { id: 7, traderId: 2, name: "Debut", completed: false }]]);
     const status = evaluateRequirements(
       { ...noRequirements, prerequisiteQuestSlugs: ["Debut"] },
       null,
       completionBySlug
     );
-    expect(status.prerequisites).toEqual([{ name: "Debut", completed: false }]);
+    expect(status.prerequisites).toEqual([{ id: 7, traderId: 2, name: "Debut", completed: false }]);
     expect(status.locked).toBe(true);
   });
 
   it("does not lock when the known prerequisite quest is completed", () => {
-    const completionBySlug = new Map([["Debut", { name: "Debut", completed: true }]]);
+    const completionBySlug = new Map([["Debut", { id: 7, traderId: 2, name: "Debut", completed: true }]]);
     const status = evaluateRequirements(
       { ...noRequirements, prerequisiteQuestSlugs: ["Debut"] },
       null,

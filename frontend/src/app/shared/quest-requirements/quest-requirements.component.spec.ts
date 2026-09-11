@@ -22,7 +22,7 @@ describe("QuestRequirementsComponent", () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain("Level 30 required");
     expect(el.textContent).toContain("✓");
-    expect(el.querySelector("span")?.className).toContain("text-green-400");
+    expect(el.querySelector("span")?.className).toContain("text-[var(--color-available)]");
   });
 
   it("shows the required level with a lock icon when not met", () => {
@@ -31,7 +31,7 @@ describe("QuestRequirementsComponent", () => {
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
     expect(el.textContent).toContain("🔒");
-    expect(el.querySelector("span")?.className).toContain("text-red-400");
+    expect(el.querySelector("span")?.className).toContain("text-[var(--color-locked)]");
   });
 
   it("shows the required level with no icon when unknown (player level not entered)", () => {
@@ -44,18 +44,41 @@ describe("QuestRequirementsComponent", () => {
     expect(el.textContent).toContain("Level 30 required");
   });
 
-  it("lists each prerequisite quest with a checkmark or lock icon depending on completion", () => {
+  it("lists a completed prerequisite as plain text with a checkmark", () => {
     fixture.componentRef.setInput("prerequisites", [
-      { name: "The Punisher - Part 1", completed: true },
-      { name: "The Punisher - Part 2", completed: false },
+      { id: 1, traderId: 1, name: "The Punisher - Part 1", completed: true },
     ]);
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
-    const spans = Array.from(el.querySelectorAll("span"));
-    expect(spans[0].textContent).toContain("✓");
-    expect(spans[0].textContent).toContain("The Punisher - Part 1");
-    expect(spans[1].textContent).toContain("🔒");
-    expect(spans[1].textContent).toContain("The Punisher - Part 2");
+    const span = el.querySelector("span");
+    expect(span?.textContent).toContain("✓");
+    expect(span?.textContent).toContain("The Punisher - Part 1");
+    expect(el.querySelector("button")).toBeNull();
+  });
+
+  it("renders a locked prerequisite as a clickable button with a lock icon", () => {
+    fixture.componentRef.setInput("prerequisites", [
+      { id: 2, traderId: 3, name: "The Punisher - Part 2", completed: false },
+    ]);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const button = el.querySelector("button");
+    expect(button?.textContent).toContain("🔒");
+    expect(button?.textContent).toContain("The Punisher - Part 2");
+  });
+
+  it("emits prerequisiteSelected with the quest's id and traderId when its locked button is clicked", () => {
+    fixture.componentRef.setInput("prerequisites", [
+      { id: 2, traderId: 3, name: "The Punisher - Part 2", completed: false },
+    ]);
+    fixture.detectChanges();
+    const emitted: Array<{ id: number; traderId: number }> = [];
+    fixture.componentInstance.prerequisiteSelected.subscribe((v) => emitted.push(v));
+
+    const button = fixture.nativeElement.querySelector("button") as HTMLButtonElement;
+    button.click();
+
+    expect(emitted).toEqual([{ id: 2, traderId: 3 }]);
   });
 
   it("renders loyalty notes as informational text", () => {

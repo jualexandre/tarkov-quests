@@ -254,5 +254,35 @@ describe("QuestsPageComponent", () => {
       const el: HTMLElement = fixture.nativeElement;
       expect(el.textContent).toContain("🔒");
     });
+
+    it("clicking a locked prerequisite switches to its trader, scrolls to it and briefly highlights it", () => {
+      vi.useFakeTimers();
+      try {
+        questsApi.getTraders.mockReturnValue(of(chainTraders));
+        setup();
+        fixture.componentInstance.onTraderSelected(2);
+        fixture.detectChanges();
+
+        const scrollIntoView = vi.fn();
+        HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+        const button = fixture.nativeElement.querySelector("app-quest-table button") as HTMLButtonElement;
+        button.click();
+        fixture.detectChanges();
+        vi.advanceTimersByTime(0);
+        fixture.detectChanges();
+
+        expect(selectedTraderName()).toContain("Prapor");
+        expect(scrollIntoView).toHaveBeenCalled();
+        const targetRow = (fixture.nativeElement as HTMLElement).querySelector("#quest-1") as HTMLElement;
+        expect(targetRow).not.toBeNull();
+        expect(targetRow.classList.contains("quest-highlight")).toBe(true);
+
+        vi.advanceTimersByTime(1500);
+        expect(targetRow.classList.contains("quest-highlight")).toBe(false);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });

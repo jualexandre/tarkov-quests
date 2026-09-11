@@ -60,15 +60,19 @@ describe("SearchResultsComponent", () => {
     fixture.detectChanges();
   });
 
-  it("renders a Trader / Quest / Required items / Objectives / Rewards header", () => {
+  it("renders a Trader / Quest / Objectives / Rewards header", () => {
     const el: HTMLElement = fixture.nativeElement;
     const headers = Array.from(el.querySelectorAll("thead th")).map((th) => th.textContent?.trim());
-    expect(headers).toEqual(["Trader", "Quest", "Required items", "Objectives", "Rewards"]);
+    expect(headers).toEqual(["Trader", "Quest", "Objectives", "Rewards"]);
   });
 
-  it("renders one row per matching quest with its trader name, objectives and rewards", () => {
+  function mainRows(): HTMLElement[] {
     const el: HTMLElement = fixture.nativeElement;
-    const rows = el.querySelectorAll("tbody tr");
+    return Array.from(el.querySelectorAll("tbody tr")).filter((tr) => tr.querySelector("app-quest-cell")) as HTMLElement[];
+  }
+
+  it("renders one row per matching quest with its trader name, objectives and rewards", () => {
+    const rows = mainRows();
     expect(rows.length).toBe(2);
     expect(rows[0].textContent).toContain("Prapor");
     expect(rows[0].textContent).toContain("Debut");
@@ -80,8 +84,7 @@ describe("SearchResultsComponent", () => {
 
   it("renders each result's required items", () => {
     const el: HTMLElement = fixture.nativeElement;
-    const rows = el.querySelectorAll("tbody tr");
-    expect(rows[0].textContent).toContain("Secure Folder 0060");
+    expect(el.textContent).toContain("Secure Folder 0060");
   });
 
   it("passes playerLevel and completionBySlug down so a locked quest renders its lock icon", () => {
@@ -98,15 +101,13 @@ describe("SearchResultsComponent", () => {
   });
 
   it("renders the trader's portrait image in the Trader cell when imageUrl is set", () => {
-    const el: HTMLElement = fixture.nativeElement;
-    const row = el.querySelectorAll("tbody tr")[0];
+    const row = mainRows()[0];
     const img = row.querySelector("img") as HTMLImageElement;
     expect(img.src).toContain("/api/trader-images/prapor.png");
   });
 
   it("renders a fallback initial instead of an image when the trader's imageUrl is null", () => {
-    const el: HTMLElement = fixture.nativeElement;
-    const row = el.querySelectorAll("tbody tr")[1];
+    const row = mainRows()[1];
     expect(row.querySelector("img")).toBeNull();
     expect(row.textContent).toContain("T");
   });
@@ -128,6 +129,29 @@ describe("SearchResultsComponent", () => {
     checkbox.dispatchEvent(new Event("change"));
 
     expect(emitted).toEqual([{ id: 2, completed: true }]);
+  });
+
+  it("bubbles prerequisiteSelected up from a quest cell", () => {
+    const lockedResults = [
+      {
+        ...results[0],
+        requirements: { minLevel: null, prerequisiteQuestSlugs: ["Some_Other_Quest"], loyaltyNotes: [] },
+      },
+      results[1],
+    ];
+    fixture.componentRef.setInput("results", lockedResults);
+    fixture.componentRef.setInput(
+      "completionBySlug",
+      new Map([["Some_Other_Quest", { id: 9, traderId: 2, name: "Some Other Quest", completed: false }]])
+    );
+    fixture.detectChanges();
+
+    const emitted: Array<{ id: number; traderId: number }> = [];
+    fixture.componentInstance.prerequisiteSelected.subscribe((v) => emitted.push(v));
+    const button = (fixture.nativeElement as HTMLElement).querySelector("button") as HTMLButtonElement;
+    button.click();
+
+    expect(emitted).toEqual([{ id: 9, traderId: 2 }]);
   });
 
   it("moves completed quests to the end", () => {

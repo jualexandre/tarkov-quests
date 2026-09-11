@@ -10,6 +10,9 @@ import { QuestsState } from "../state/quests.state";
 import { LoadTraders, RunScrape, ToggleQuestCompleted } from "../state/quests.actions";
 import type { QuestCompletionInfo } from "../../../core/quest-lock";
 import type { TraderDto, ScrapeSummaryDto, QuestToggledEvent } from "../../../core/api/quests.api";
+import type { PrerequisiteSelectedEvent } from "../../../shared/quest-requirements/quest-requirements.component";
+
+const QUEST_HIGHLIGHT_DURATION_MS = 1500;
 
 const SELECTED_TRADER_STORAGE_KEY = "tarkov-quests.selectedTraderId";
 const PLAYER_LEVEL_STORAGE_KEY = "tarkov-quests.playerLevel";
@@ -43,7 +46,12 @@ export class QuestsPageComponent implements OnInit {
     const map = new Map<string, QuestCompletionInfo>();
     for (const trader of this.traders()) {
       for (const quest of trader.quests) {
-        map.set(quest.wikiSlug, { name: quest.name, completed: quest.completed });
+        map.set(quest.wikiSlug, {
+          id: quest.id,
+          traderId: trader.id,
+          name: quest.name,
+          completed: quest.completed,
+        });
       }
     }
     return map;
@@ -76,6 +84,22 @@ export class QuestsPageComponent implements OnInit {
   onTraderSelected(id: number): void {
     this.selectedTraderId.set(id);
     localStorage.setItem(SELECTED_TRADER_STORAGE_KEY, String(id));
+  }
+
+  onPrerequisiteSelected(event: PrerequisiteSelectedEvent): void {
+    this.searchQuery.set("");
+    this.onTraderSelected(event.traderId);
+    // The target quest table only exists in the DOM after the trader switch
+    // above has been rendered, so defer the scroll to the next tick.
+    setTimeout(() => this.scrollToQuest(event.id));
+  }
+
+  private scrollToQuest(id: number): void {
+    const element = document.getElementById(`quest-${id}`);
+    if (!element) return;
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    element.classList.add("quest-highlight");
+    setTimeout(() => element.classList.remove("quest-highlight"), QUEST_HIGHLIGHT_DURATION_MS);
   }
 
   onSearchInput(event: Event): void {

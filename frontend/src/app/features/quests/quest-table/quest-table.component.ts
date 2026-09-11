@@ -6,6 +6,7 @@ import { RequiredItemListComponent } from "../../../shared/required-item-list/re
 import { sortByCompleted } from "../../../core/quest-sort";
 import type { QuestCompletionInfo } from "../../../core/quest-lock";
 import type { QuestDto, TraderDto, QuestToggledEvent } from "../../../core/api/quests.api";
+import type { PrerequisiteSelectedEvent } from "../../../shared/quest-requirements/quest-requirements.component";
 
 @Component({
   selector: "app-quest-table",
@@ -18,6 +19,7 @@ export class QuestTableComponent {
   @Input() playerLevel: number | null = null;
   @Input() completionBySlug: ReadonlyMap<string, QuestCompletionInfo> = new Map();
   @Output() questToggled = new EventEmitter<QuestToggledEvent>();
+  @Output() prerequisiteSelected = new EventEmitter<PrerequisiteSelectedEvent>();
 
   sortedQuests(): QuestDto[] {
     return sortByCompleted(this.trader.quests);
