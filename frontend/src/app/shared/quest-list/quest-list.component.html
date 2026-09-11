@@ -1,5 +1,8 @@
-<ul class="list-disc list-inside space-y-0.5">
+<ul class="flex flex-col gap-1 leading-snug {{ large ? 'text-[13px]' : 'text-xs' }}">
   @for (item of items; track $index) {
-    <li [innerHTML]="item"></li>
+    <li class="flex gap-1.5">
+      <span class="mt-[5px] h-[3px] w-[3px] shrink-0 rounded-full bg-current opacity-50"></span>
+      <span [innerHTML]="item"></span>
+    </li>
   }
 </ul>

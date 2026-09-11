@@ -10,4 +10,5 @@ import { CommonModule } from "@angular/common";
 })
 export class QuestListComponent {
   @Input({ required: true }) items!: string[];
+  @Input() large = false;
 }

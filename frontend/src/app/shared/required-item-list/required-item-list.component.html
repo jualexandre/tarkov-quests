@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-1.5">
+<div class="flex flex-col gap-1.5 text-xs">
   @for (entry of items; track $index) {
     @if (entry.kind === 'divider') {
       <div class="text-[10px] uppercase tracking-wide text-[var(--color-text-muted)]">{{ entry.label }}</div>
