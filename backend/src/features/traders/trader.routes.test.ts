@@ -51,4 +51,50 @@ describe("GET /api/traders", () => {
     expect(response.body[0].imageUrl).toBe("/api/trader-images/prapor.png");
     expect(response.body[0].quests[0].wikiSlug).toBe("Debut");
   });
+
+  it("shortens loyaltyNotes in each quest's requirements", async () => {
+    const grouped: TraderWithQuests[] = [
+      {
+        id: 1,
+        name: "Prapor",
+        slug: "prapor",
+        tabOrder: 0,
+        imageUrl: null,
+        quests: [
+          {
+            id: 1,
+            traderId: 1,
+            name: "Debut",
+            wikiSlug: "Debut",
+            wikiUrl: "/wiki/Debut",
+            objectives: [],
+            rewards: [],
+            requiredItems: [],
+            requirements: {
+              minLevel: null,
+              prerequisiteQuestSlugs: [],
+              loyaltyNotes: ["Must be Loyalty Level 2 to start this quest."],
+            },
+            completed: false,
+            active: true,
+            lastSeenAt: new Date("2026-01-01T00:00:00.000Z"),
+          },
+        ],
+      },
+    ];
+    const questRepository = {
+      findAllActiveGroupedByTrader: vi.fn().mockResolvedValue(grouped),
+    } as unknown as QuestRepository;
+    const scraperService = {} as ScraperService;
+
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
+    const response = await request(app).get("/api/traders");
+
+    expect(response.body[0].quests[0].requirements.loyaltyNotes).toEqual(["LL2"]);
+  });
 });

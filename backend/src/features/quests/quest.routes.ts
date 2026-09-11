@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { QuestRepository } from "./quest.types";
+import { mapQuestForResponse } from "./quest-response";
 
 export function createQuestRouter(questRepository: QuestRepository): Router {
   const router = Router();
@@ -18,7 +19,7 @@ export function createQuestRouter(questRepository: QuestRepository): Router {
         return;
       }
       const quest = await questRepository.updateCompleted(id, completed);
-      res.json(quest);
+      res.json(mapQuestForResponse(quest));
     } catch (err) {
       next(err);
     }

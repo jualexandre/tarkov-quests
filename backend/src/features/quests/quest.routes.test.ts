@@ -39,6 +39,41 @@ describe("PATCH /api/quests/:id", () => {
     expect(questRepository.updateCompleted).toHaveBeenCalledWith(1, true);
   });
 
+  it("shortens loyaltyNotes in the returned requirements", async () => {
+    const updatedQuest = {
+      id: 1,
+      traderId: 1,
+      name: "Debut",
+      wikiSlug: "Debut",
+      wikiUrl: "/wiki/Debut",
+      objectives: [],
+      rewards: [],
+      requiredItems: [],
+      requirements: {
+        minLevel: null,
+        prerequisiteQuestSlugs: [],
+        loyaltyNotes: ["Must be Loyalty Level 2 to start this quest."],
+      },
+      completed: true,
+      active: true,
+      lastSeenAt: new Date(),
+    };
+    const questRepository = {
+      updateCompleted: vi.fn().mockResolvedValue(updatedQuest),
+    } as unknown as QuestRepository;
+    const scraperService = {} as ScraperService;
+
+    const app = createApp({
+      questRepository,
+      scraperService,
+      traderImagesDir: "/tmp/test-trader-images",
+      itemImagesDir: "/tmp/test-item-images",
+    });
+    const response = await request(app).patch("/api/quests/1").send({ completed: true });
+
+    expect(response.body.requirements.loyaltyNotes).toEqual(["LL2"]);
+  });
+
   it("returns 400 when completed is not a boolean", async () => {
     const questRepository = {} as unknown as QuestRepository;
     const scraperService = {} as ScraperService;
