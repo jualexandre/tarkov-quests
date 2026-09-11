@@ -3,9 +3,8 @@ import { CommonModule } from "@angular/common";
 import { WIKI_BASE_URL } from "../../core/wiki";
 import { evaluateRequirements } from "../../core/quest-lock";
 import type { QuestCompletionInfo, RequirementsStatus } from "../../core/quest-lock";
-import type { QuestRequirementsDto, QuestToggledEvent, RequiredItemEntryDto } from "../../core/api/quests.api";
+import type { QuestRequirementsDto, QuestToggledEvent } from "../../core/api/quests.api";
 import { QuestRequirementsComponent } from "../quest-requirements/quest-requirements.component";
-import { RequiredItemListComponent } from "../required-item-list/required-item-list.component";
 
 export interface QuestCellDto {
   id: number;
@@ -13,13 +12,12 @@ export interface QuestCellDto {
   completed: boolean;
   wikiUrl: string;
   requirements: QuestRequirementsDto;
-  requiredItems: RequiredItemEntryDto[];
 }
 
 @Component({
   selector: "app-quest-cell",
   standalone: true,
-  imports: [CommonModule, QuestRequirementsComponent, RequiredItemListComponent],
+  imports: [CommonModule, QuestRequirementsComponent],
   templateUrl: "./quest-cell.component.html",
   host: { class: "contents" },
 })

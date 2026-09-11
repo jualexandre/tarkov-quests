@@ -1,5 +1,5 @@
 <div class="rounded-lg bg-[var(--color-bg)]">
-  <table class="w-full table-fixed text-sm border-separate [border-spacing:0_10px] mt-10">
+  <table class="w-full table-fixed text-sm border-separate [border-spacing:0] mt-10">
     <thead>
       <tr class="font-display text-left text-[var(--color-text-muted)] sticky top-0 bg-[var(--color-bg)] z-10">
         <th class="pb-2 pl-3 border-b border-[var(--color-border)] w-[30%]">Quest</th>
@@ -8,9 +8,14 @@
       </tr>
     </thead>
     <tbody>
+      <tr aria-hidden="true" class="h-[10px]"><td colspan="3"></td></tr>
       @for (quest of sortedQuests(); track quest.id) {
         <tr class="align-top bg-[var(--color-surface)]">
-          <td class="py-3 pl-3 pr-2 rounded-l-lg break-words">
+          <td
+            class="py-3 pl-3 pr-2 break-words"
+            [class.rounded-tl-lg]="quest.requiredItems.length > 0"
+            [class.rounded-l-lg]="quest.requiredItems.length === 0"
+          >
             <app-quest-cell
               [quest]="quest"
               [playerLevel]="playerLevel"
@@ -21,10 +26,22 @@
           <td class="py-3 pr-4 text-white break-words">
             <app-quest-list [items]="quest.objectives" [large]="true"></app-quest-list>
           </td>
-          <td class="py-3 pr-3 rounded-r-lg text-[var(--color-text-muted)] break-words">
+          <td
+            class="py-3 pr-3 text-[var(--color-text-muted)] break-words"
+            [class.rounded-tr-lg]="quest.requiredItems.length > 0"
+            [class.rounded-r-lg]="quest.requiredItems.length === 0"
+          >
             <app-quest-list [items]="quest.rewards" [condense]="true"></app-quest-list>
           </td>
         </tr>
+        @if (quest.requiredItems.length > 0) {
+          <tr class="bg-[var(--color-surface)]">
+            <td colspan="3" class="px-3 pt-2 pb-3 rounded-b-lg border-t border-[var(--color-border)] break-words">
+              <app-required-item-list [items]="quest.requiredItems"></app-required-item-list>
+            </td>
+          </tr>
+        }
+        <tr aria-hidden="true" class="h-[10px]"><td colspan="3"></td></tr>
       } @empty {
         <tr>
           <td colspan="3" class="py-3 text-sm text-[var(--color-text-muted)]">No active quests.</td>

@@ -1,13 +1,18 @@
-<div class="flex flex-col gap-1.5 text-xs">
+<div class="flex flex-row flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
   @for (entry of items; track $index) {
     @if (entry.kind === 'divider') {
-      <div class="text-[10px] uppercase tracking-wide text-[var(--color-text-muted)]">{{ entry.label }}</div>
+      <div
+        class="text-[10px] uppercase tracking-wide text-[var(--color-text-muted)]"
+        [class.border-l]="$index > 0"
+        [class.border-[var(--color-border)]]="$index > 0"
+        [class.pl-4]="$index > 0"
+      >{{ entry.label }}</div>
     } @else {
       <div class="flex items-center gap-1.5">
         @if (entry.iconUrl) {
           <img [src]="entry.iconUrl" [alt]="entry.name" class="h-6 w-6 rounded object-cover shrink-0" />
         }
-        <span class="truncate">{{ entry.name }}</span>
+        <span class="truncate max-w-[10rem]">{{ entry.name }}</span>
         @if (entry.amount !== null) {
           <span class="text-[var(--color-text-muted)]">×{{ entry.amount }}</span>
         }
