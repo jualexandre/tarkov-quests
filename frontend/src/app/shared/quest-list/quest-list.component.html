@@ -2,7 +2,7 @@
   @for (item of items; track $index) {
     <li class="flex gap-1.5">
       <span class="mt-[5px] h-[3px] w-[3px] shrink-0 rounded-full bg-current opacity-50"></span>
-      <span [innerHTML]="item"></span>
+      <span [innerHTML]="condense ? (item | condenseCurrency) : item"></span>
     </li>
   }
 </ul>

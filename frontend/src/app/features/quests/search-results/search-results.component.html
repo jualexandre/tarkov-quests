@@ -28,7 +28,9 @@
           <td class="py-3 pr-4 text-[var(--color-text-muted)] break-words">
             <app-quest-list [items]="quest.objectives" [large]="true"></app-quest-list>
           </td>
-          <td class="py-3 pr-3 rounded-r-lg text-[13px] leading-snug text-[var(--color-text-muted)] break-words" [innerHTML]="quest.rewards.join(', ')"></td>
+          <td class="py-3 pr-3 rounded-r-lg text-[var(--color-text-muted)] break-words">
+            <app-quest-list [items]="quest.rewards" [condense]="true"></app-quest-list>
+          </td>
         </tr>
       } @empty {
         <tr>
